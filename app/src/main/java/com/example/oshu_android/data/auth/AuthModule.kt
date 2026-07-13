@@ -6,10 +6,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object AuthModule {
     private val retrofit: Retrofit by lazy {
-        require(BuildConfig.BASE_URL.isNotBlank())
+        val baseUrl = BuildConfig.BASE_URL
+
+        require(baseUrl.isNotBlank()) {
+            "BASE_URL이 설정되지 않았습니다."
+        }
 
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(baseUrl)
             .addConverterFactory(
                 GsonConverterFactory.create()
             )
