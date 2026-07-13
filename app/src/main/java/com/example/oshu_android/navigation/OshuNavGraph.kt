@@ -1,10 +1,7 @@
 package com.example.oshu_android.navigation
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +14,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.oshu_android.data.AppContainer
 import com.example.oshu_android.feature.auth.login.LoginRoute
 import com.example.oshu_android.feature.auth.login.LoginViewModel
+import com.example.oshu_android.feature.auth.signup.SignUpRoute
+import com.example.oshu_android.feature.auth.signup.SignUpViewModel
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
 
@@ -30,11 +29,12 @@ fun OshuNavGraph(
         navController = navController,
         startDestination = OshuRoutes.SPLASH,
     ) {
-        composable(OshuRoutes.SPLASH) {
+        composable(
+            route = OshuRoutes.SPLASH,
+        ) {
             SplashScreen(
                 onboardingPreferences =
-                    appContainer
-                        .onboardingPreferences,
+                    appContainer.onboardingPreferences,
                 onOnboardingRequired = {
                     navController.navigate(
                         OshuRoutes.ONBOARDING
@@ -42,6 +42,8 @@ fun OshuNavGraph(
                         popUpTo(OshuRoutes.SPLASH) {
                             inclusive = true
                         }
+
+                        launchSingleTop = true
                     }
                 },
                 onLoginRequired = {
@@ -51,16 +53,19 @@ fun OshuNavGraph(
                         popUpTo(OshuRoutes.SPLASH) {
                             inclusive = true
                         }
+
+                        launchSingleTop = true
                     }
                 },
             )
         }
 
-        composable(OshuRoutes.ONBOARDING) {
+        composable(
+            route = OshuRoutes.ONBOARDING,
+        ) {
             OnboardingScreen(
                 onboardingPreferences =
-                    appContainer
-                        .onboardingPreferences,
+                    appContainer.onboardingPreferences,
                 onFinished = {
                     navController.navigate(
                         OshuRoutes.LOGIN
@@ -70,19 +75,23 @@ fun OshuNavGraph(
                         ) {
                             inclusive = true
                         }
+
+                        launchSingleTop = true
                     }
                 },
             )
         }
 
-        composable(OshuRoutes.LOGIN) {
-            val loginViewModel:
-                    LoginViewModel = viewModel(
-                factory = LoginViewModel.Factory(
-                    loginRepository =
-                        appContainer.loginRepository,
-                ),
-            )
+        composable(
+            route = OshuRoutes.LOGIN,
+        ) {
+            val loginViewModel: LoginViewModel =
+                viewModel(
+                    factory = LoginViewModel.Factory(
+                        loginRepository =
+                            appContainer.loginRepository,
+                    ),
+                )
 
             LoginRoute(
                 viewModel = loginViewModel,
@@ -93,56 +102,69 @@ fun OshuNavGraph(
                         popUpTo(OshuRoutes.LOGIN) {
                             inclusive = true
                         }
+
+                        launchSingleTop = true
                     }
                 },
                 onSignUpClick = {
                     navController.navigate(
                         OshuRoutes.SIGN_UP
-                    )
+                    ) {
+                        launchSingleTop = true
+                    }
                 },
             )
         }
 
-        composable(OshuRoutes.SIGN_UP) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment =
-                    Alignment.CenterHorizontally,
-                verticalArrangement =
-                    Arrangement.Center,
-            ) {
-                Text(
-                    text = "회원가입 화면",
-                    color = MaterialTheme
-                        .colorScheme
-                        .onBackground,
+        composable(
+            route = OshuRoutes.SIGN_UP,
+        ) {
+            val signUpViewModel: SignUpViewModel =
+                viewModel(
+                    factory =
+                        SignUpViewModel.Factory(
+                            signUpRepository =
+                                appContainer
+                                    .signUpRepository,
+                        ),
                 )
 
-                Button(
-                    onClick = {
-                        navController.popBackStack()
-                    },
-                ) {
-                    Text(
-                        text = "로그인으로 돌아가기",
-                    )
-                }
-            }
+            SignUpRoute(
+                viewModel = signUpViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate(
+                        OshuRoutes.LOGIN
+                    ) {
+                        popUpTo(OshuRoutes.LOGIN) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
+                },
+            )
         }
 
-        composable(OshuRoutes.HOME) {
+        composable(
+            route = OshuRoutes.HOME,
+        ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "메인 화면",
-                    color = MaterialTheme
-                        .colorScheme
-                        .onBackground,
-                    style = MaterialTheme
-                        .typography
-                        .headlineMedium,
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onBackground,
+                    style =
+                        MaterialTheme
+                            .typography
+                            .headlineMedium,
                 )
             }
         }
