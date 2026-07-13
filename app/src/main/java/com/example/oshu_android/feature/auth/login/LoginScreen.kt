@@ -1,5 +1,6 @@
 package com.example.oshu_android.feature.auth.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +40,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,12 +50,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
-
-private val OshuPink = Color(0xFFFF829B)
-private val OshuBackground = Color(0xFFFFF7F8)
-private val OshuBorder = Color(0xFFD8D8D8)
-private val OshuHint = Color(0xFF999999)
-private val OshuError = Color(0xFFFF3B30)
 
 @Composable
 fun LoginRoute(
@@ -77,8 +71,10 @@ fun LoginRoute(
         uiState = uiState,
         onLoginIdChanged = viewModel::onLoginIdChanged,
         onPasswordChanged = viewModel::onPasswordChanged,
-        onPasswordVisibilityClick = viewModel::onPasswordVisibilityChanged,
-        onKeepLoggedInChanged = viewModel::onKeepLoggedInChanged,
+        onPasswordVisibilityClick =
+            viewModel::onPasswordVisibilityChanged,
+        onKeepLoggedInChanged =
+            viewModel::onKeepLoggedInChanged,
         onLoginClick = viewModel::login,
         onSignUpClick = onSignUpClick,
         modifier = modifier,
@@ -98,22 +94,24 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
+    val colorScheme = MaterialTheme.colorScheme
+
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color.White,
-        unfocusedContainerColor = Color.White,
-        errorContainerColor = Color.White,
-        focusedBorderColor = OshuPink,
-        unfocusedBorderColor = OshuBorder,
-        errorBorderColor = OshuError,
-        cursorColor = OshuPink,
-        focusedPlaceholderColor = OshuHint,
-        unfocusedPlaceholderColor = OshuHint,
+        focusedContainerColor = colorScheme.surface,
+        unfocusedContainerColor = colorScheme.surface,
+        errorContainerColor = colorScheme.surface,
+        focusedBorderColor = colorScheme.primary,
+        unfocusedBorderColor = colorScheme.outline,
+        errorBorderColor = colorScheme.error,
+        cursorColor = colorScheme.primary,
+        focusedPlaceholderColor = colorScheme.onSurfaceVariant,
+        unfocusedPlaceholderColor = colorScheme.onSurfaceVariant,
     )
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(OshuBackground)
+            .background(colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding(),
@@ -127,8 +125,10 @@ fun LoginScreen(
         ) {
             Spacer(Modifier.height(132.dp))
 
-            androidx.compose.foundation.Image(
-                painter = painterResource(R.drawable.img_logo_oshu),
+            Image(
+                painter = painterResource(
+                    R.drawable.img_logo_oshu
+                ),
                 contentDescription = "OSHU",
                 modifier = Modifier.width(220.dp),
             )
@@ -141,11 +141,19 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading,
                 singleLine = true,
-                placeholder = { Text("아이디를 입력해주세요", fontSize = 15.sp) },
-                isError = uiState.loginIdError != null,
-                supportingText = uiState.loginIdError?.let { message ->
-                    { ErrorText(message) }
+                placeholder = {
+                    Text(
+                        text = "아이디를 입력해주세요",
+                        fontSize = 15.sp,
+                    )
                 },
+                isError = uiState.loginIdError != null,
+                supportingText =
+                    uiState.loginIdError?.let { message ->
+                        {
+                            ErrorText(message)
+                        }
+                    },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next,
@@ -162,14 +170,22 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading,
                 singleLine = true,
-                placeholder = { Text("비밀번호를 입력해주세요", fontSize = 15.sp) },
-                visualTransformation = if (uiState.isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
+                placeholder = {
+                    Text(
+                        text = "비밀번호를 입력해주세요",
+                        fontSize = 15.sp,
+                    )
                 },
+                visualTransformation =
+                    if (uiState.isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 trailingIcon = {
-                    IconButton(onClick = onPasswordVisibilityClick) {
+                    IconButton(
+                        onClick = onPasswordVisibilityClick,
+                    ) {
                         Icon(
                             painter = painterResource(
                                 if (uiState.isPasswordVisible) {
@@ -178,20 +194,25 @@ fun LoginScreen(
                                     R.drawable.ic_visibility_off
                                 },
                             ),
-                            contentDescription = if (uiState.isPasswordVisible) {
-                                "비밀번호 숨기기"
-                            } else {
-                                "비밀번호 보기"
-                            },
-                            tint = OshuPink,
+                            contentDescription =
+                                if (uiState.isPasswordVisible) {
+                                    "비밀번호 숨기기"
+                                } else {
+                                    "비밀번호 보기"
+                                },
+                            tint = colorScheme.primary,
                         )
                     }
                 },
-                isError = uiState.passwordError != null || uiState.loginError != null,
+                isError =
+                    uiState.passwordError != null ||
+                            uiState.loginError != null,
                 supportingText = (
                         uiState.passwordError ?: uiState.loginError
                         )?.let { message ->
-                        { ErrorText(message) }
+                        {
+                            ErrorText(message)
+                        }
                     },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
@@ -211,8 +232,12 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
-                    .clickable(enabled = !uiState.isLoading) {
-                        onKeepLoggedInChanged(!uiState.keepLoggedIn)
+                    .clickable(
+                        enabled = !uiState.isLoading,
+                    ) {
+                        onKeepLoggedInChanged(
+                            !uiState.keepLoggedIn
+                        )
                     },
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
@@ -223,14 +248,15 @@ fun LoginScreen(
                     enabled = !uiState.isLoading,
                     modifier = Modifier.size(34.dp),
                     colors = CheckboxDefaults.colors(
-                        checkedColor = OshuPink,
-                        uncheckedColor = OshuBorder,
-                        checkmarkColor = Color.White,
+                        checkedColor = colorScheme.primary,
+                        uncheckedColor = colorScheme.outline,
+                        checkmarkColor = colorScheme.onPrimary,
                     ),
                 )
+
                 Text(
                     text = "로그인 상태 유지",
-                    color = Color(0xFF333333),
+                    color = colorScheme.onSurface,
                     fontSize = 14.sp,
                 )
             }
@@ -248,15 +274,16 @@ fun LoginScreen(
                 enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = OshuPink,
-                    disabledContainerColor = OshuPink.copy(alpha = 0.55f),
-                    contentColor = Color.White,
+                    containerColor = colorScheme.primary,
+                    disabledContainerColor =
+                        colorScheme.primary.copy(alpha = 0.55f),
+                    contentColor = colorScheme.onPrimary,
                 ),
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = Color.White,
+                        color = colorScheme.onPrimary,
                         strokeWidth = 2.dp,
                     )
                 } else {
@@ -270,16 +297,20 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = "계정이 없으신가요?",
-                    color = Color(0xFF222222),
+                    color = colorScheme.onSurface,
                     fontSize = 13.sp,
                 )
+
                 Spacer(Modifier.width(12.dp))
+
                 Text(
                     text = "회원가입",
-                    color = OshuPink,
+                    color = colorScheme.primary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable(
@@ -298,7 +329,7 @@ fun LoginScreen(
 private fun ErrorText(message: String) {
     Text(
         text = message,
-        color = OshuError,
+        color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodySmall,
     )
 }
