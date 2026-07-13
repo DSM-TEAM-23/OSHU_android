@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -120,7 +121,7 @@ fun SignUpScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(44.dp),
                 horizontalArrangement =
                     Arrangement.SpaceBetween,
                 verticalAlignment =
@@ -128,7 +129,7 @@ fun SignUpScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(36.dp)
                         .clickable(
                             enabled = !uiState.isLoading,
                             onClick = onBackClick,
@@ -138,34 +139,34 @@ fun SignUpScreen(
                 ) {
                     Text(
                         text = "‹",
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.Normal,
+                        fontSize = 35.sp,
+                        lineHeight = 35.sp,
                         color = colorScheme.onBackground,
                     )
                 }
 
                 Text(
                     text = "OSHU",
-                    fontSize = 25.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.primary,
                 )
             }
 
             Spacer(
-                modifier = Modifier.height(8.dp)
+                modifier = Modifier.height(4.dp)
             )
 
             Text(
                 text = "회원가입",
-                fontSize = 32.sp,
-                lineHeight = 38.sp,
+                fontSize = 30.sp,
+                lineHeight = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground,
             )
 
             Spacer(
-                modifier = Modifier.height(26.dp)
+                modifier = Modifier.height(16.dp)
             )
 
             InputLabel(
@@ -173,7 +174,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(7.dp)
+                modifier = Modifier.height(4.dp)
             )
 
             Row(
@@ -222,11 +223,13 @@ fun SignUpScreen(
                     onClick = onCheckLoginId,
                     modifier = Modifier
                         .width(96.dp)
-                        .height(56.dp),
+                        .height(52.dp),
                     enabled = !uiState.isLoading,
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding =
-                        ButtonDefaults.ContentPadding,
+                    shape = RoundedCornerShape(11.dp),
+                    contentPadding = PaddingValues(
+                        horizontal = 6.dp,
+                        vertical = 0.dp,
+                    ),
                     colors =
                         ButtonDefaults.buttonColors(
                             containerColor =
@@ -269,9 +272,9 @@ fun SignUpScreen(
                     if (
                         uiState.loginIdError == null
                     ) {
-                        17.dp
+                        12.dp
                     } else {
-                        8.dp
+                        4.dp
                     }
                 )
             )
@@ -281,7 +284,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(7.dp)
+                modifier = Modifier.height(4.dp)
             )
 
             SignUpTextField(
@@ -320,9 +323,9 @@ fun SignUpScreen(
                     if (
                         uiState.passwordError == null
                     ) {
-                        17.dp
+                        12.dp
                     } else {
-                        8.dp
+                        4.dp
                     }
                 )
             )
@@ -332,7 +335,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(7.dp)
+                modifier = Modifier.height(4.dp)
             )
 
             SignUpTextField(
@@ -371,9 +374,9 @@ fun SignUpScreen(
                         uiState.passwordConfirmError ==
                         null
                     ) {
-                        24.dp
+                        14.dp
                     } else {
-                        10.dp
+                        5.dp
                     }
                 )
             )
@@ -394,13 +397,13 @@ fun SignUpScreen(
                 SignUpErrorText(
                     text = it,
                     modifier = Modifier.padding(
-                        top = 4.dp
+                        top = 2.dp
                     ),
                 )
             }
 
             Spacer(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.height(22.dp)
             )
 
             Button(
@@ -410,7 +413,7 @@ fun SignUpScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(54.dp),
                 enabled = uiState.canSubmit,
                 shape = RoundedCornerShape(13.dp),
                 colors =
@@ -438,14 +441,14 @@ fun SignUpScreen(
                 } else {
                     Text(
                         text = "회원 가입",
-                        fontSize = 19.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
             }
 
             Spacer(
-                modifier = Modifier.height(16.dp)
+                modifier = Modifier.height(10.dp)
             )
         }
     }
@@ -473,16 +476,16 @@ private fun SignUpTextField(
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(52.dp),
         textStyle = TextStyle(
-            fontSize = 15.sp,
+            fontSize = 14.sp,
             color = colorScheme.onSurface,
         ),
         placeholder = {
             Text(
                 text = placeholder,
                 maxLines = 1,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
             )
         },
         singleLine = true,
@@ -491,7 +494,7 @@ private fun SignUpTextField(
             visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(11.dp),
         colors =
             OutlinedTextFieldDefaults.colors(
                 focusedContainerColor =
@@ -506,16 +509,16 @@ private fun SignUpTextField(
                     colorScheme.primary,
                 unfocusedBorderColor =
                     colorScheme.outline.copy(
-                        alpha = 0.34f
+                        alpha = 0.32f
                     ),
                 errorBorderColor =
                     colorScheme.error,
                 focusedPlaceholderColor =
                     colorScheme.onSurfaceVariant
-                        .copy(alpha = 0.52f),
+                        .copy(alpha = 0.50f),
                 unfocusedPlaceholderColor =
                     colorScheme.onSurfaceVariant
-                        .copy(alpha = 0.52f),
+                        .copy(alpha = 0.50f),
             ),
     )
 }
@@ -526,8 +529,8 @@ private fun InputLabel(
 ) {
     Text(
         text = text,
-        fontSize = 15.sp,
-        lineHeight = 19.sp,
+        fontSize = 14.sp,
+        lineHeight = 17.sp,
         fontWeight = FontWeight.SemiBold,
         color =
             MaterialTheme.colorScheme.onBackground,
@@ -550,12 +553,12 @@ private fun AgreementSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .height(46.dp)
                 .background(
                     color = colorScheme.surface.copy(
                         alpha = 0.82f
                     ),
-                    shape = RoundedCornerShape(13.dp),
+                    shape = RoundedCornerShape(12.dp),
                 )
                 .clickable {
                     onAllTermsChanged(
@@ -563,7 +566,7 @@ private fun AgreementSection(
                     )
                 }
                 .padding(
-                    horizontal = 16.dp,
+                    horizontal = 14.dp,
                 ),
             verticalAlignment =
                 Alignment.CenterVertically,
@@ -574,19 +577,19 @@ private fun AgreementSection(
             )
 
             Spacer(
-                modifier = Modifier.width(12.dp)
+                modifier = Modifier.width(10.dp)
             )
 
             Text(
                 text = "전체 동의",
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onSurface,
             )
         }
 
         Spacer(
-            modifier = Modifier.height(8.dp)
+            modifier = Modifier.height(5.dp)
         )
 
         AgreementRow(
@@ -635,7 +638,7 @@ private fun AgreementRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(34.dp)
+            .height(29.dp)
             .clickable(onClick = onClick),
         verticalAlignment =
             Alignment.CenterVertically,
@@ -645,21 +648,21 @@ private fun AgreementRow(
         )
 
         Spacer(
-            modifier = Modifier.width(12.dp)
+            modifier = Modifier.width(10.dp)
         )
 
         Text(
             text = text,
             modifier = Modifier.weight(1f),
             maxLines = 1,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             color = colorScheme.onSurface,
         )
 
         Text(
             text = "보기  ›",
             maxLines = 1,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             color =
                 colorScheme.onSurfaceVariant.copy(
                     alpha = 0.58f
@@ -676,7 +679,7 @@ private fun SquareCheck(
 
     Box(
         modifier = Modifier
-            .size(19.dp)
+            .size(18.dp)
             .background(
                 color =
                     if (checked) {
@@ -693,7 +696,7 @@ private fun SquareCheck(
                         colorScheme.primary
                     } else {
                         colorScheme.outline.copy(
-                            alpha = 0.82f
+                            alpha = 0.78f
                         )
                     },
                 shape = RoundedCornerShape(1.dp),
@@ -703,8 +706,8 @@ private fun SquareCheck(
         if (checked) {
             Text(
                 text = "✓",
-                fontSize = 13.sp,
-                lineHeight = 13.sp,
+                fontSize = 12.sp,
+                lineHeight = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onPrimary,
             )
@@ -720,12 +723,12 @@ private fun SignUpErrorText(
     Text(
         text = text,
         modifier = modifier.padding(
-            start = 4.dp,
-            top = 3.dp,
+            start = 3.dp,
+            top = 2.dp,
         ),
         maxLines = 1,
         color = MaterialTheme.colorScheme.error,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
+        fontSize = 10.sp,
+        lineHeight = 12.sp,
     )
 }
