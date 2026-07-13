@@ -1,8 +1,8 @@
 package com.example.oshu_android.data.auth
 
 import com.example.oshu_android.feature.auth.login.LoginResult
-import kotlinx.coroutines.CancellationException
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 
 interface LoginRepository {
     suspend fun login(
@@ -39,10 +39,11 @@ class LoginRepositoryImpl(
 
             when {
                 response.isSuccessful -> {
-                    val body = response.body()
-                        ?: return LoginResult.Failure(
-                            "서버 응답이 올바르지 않습니다.",
-                        )
+                    val body =
+                        response.body()
+                            ?: return LoginResult.Failure(
+                                "서버 응답이 올바르지 않습니다.",
+                            )
 
                     sessionStore.save(
                         response = body,
@@ -70,7 +71,9 @@ class LoginRepositoryImpl(
                     )
                 }
             }
-        } catch (cancellation: CancellationException) {
+        } catch (
+            cancellation: CancellationException
+        ) {
             throw cancellation
         } catch (_: IOException) {
             LoginResult.Failure(
