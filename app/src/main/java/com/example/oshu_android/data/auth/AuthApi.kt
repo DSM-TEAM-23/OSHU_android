@@ -10,7 +10,3 @@ interface AuthApi {
         @Body request: LoginRequest,
     ): Response<LoginResponse>
 }
-
-object OshuApiConfig {
-    const val BASE_URL = "https://api.oshu.kr/api/v1/"
-}
