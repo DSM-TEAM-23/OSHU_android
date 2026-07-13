@@ -283,10 +283,10 @@ fun LoginScreen(
                                         .isPasswordVisible
                                 ) {
                                     R.drawable
-                                        .ic_visibility
+                                        .ic_visibility_off
                                 } else {
                                     R.drawable
-                                        .ic_visibility_off
+                                        .ic_visibility
                                 },
                             ),
                             contentDescription =
@@ -370,7 +370,7 @@ fun LoginScreen(
                 Text(
                     text = "로그인 상태 유지",
                     color = colorScheme.onSurface,
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     lineHeight = 18.sp,
                 )
             }
