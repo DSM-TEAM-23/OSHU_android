@@ -15,6 +15,7 @@ configurations.configureEach {
         "androidx.activity:activity-compose:1.10.1",
         "androidx.lifecycle:lifecycle-runtime:2.9.4",
         "androidx.lifecycle:lifecycle-runtime-ktx:2.9.4",
+        "androidx.lifecycle:lifecycle-runtime-compose:2.9.4",
         "androidx.lifecycle:lifecycle-viewmodel:2.9.4",
         "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4",
         "androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4",
@@ -22,9 +23,8 @@ configurations.configureEach {
 }
 
 val localProperties = Properties()
-val localPropertiesFile = rootProject.file(
-    "local.properties"
-)
+val localPropertiesFile =
+    rootProject.file("local.properties")
 
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use {
@@ -32,15 +32,31 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+val secretsProperties = Properties()
+val secretsPropertiesFile =
+    rootProject.file("secrets.properties")
+
+if (secretsPropertiesFile.exists()) {
+    secretsPropertiesFile.inputStream().use {
+        secretsProperties.load(it)
+    }
+}
+
 val baseUrl =
     localProperties.getProperty("BASE_URL") ?: ""
+
+val mapsApiKey =
+    secretsProperties.getProperty(
+        "MAPS_API_KEY"
+    ) ?: ""
 
 android {
     namespace = "com.example.oshu_android"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.oshu_android"
+        applicationId =
+            "com.example.oshu_android"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -54,6 +70,10 @@ android {
             "oshu_api_base_url",
             baseUrl
         )
+
+        manifestPlaceholders[
+            "MAPS_API_KEY"
+        ] = mapsApiKey
     }
 
     buildTypes {
@@ -93,6 +113,9 @@ dependencies {
         "androidx.lifecycle:lifecycle-runtime-ktx:2.9.4"
     )
     implementation(
+        "androidx.lifecycle:lifecycle-runtime-compose:2.9.4"
+    )
+    implementation(
         "androidx.activity:activity-compose:1.10.1"
     )
 
@@ -100,11 +123,15 @@ dependencies {
         platform(libs.androidx.compose.bom)
     )
     implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
+    implementation(
+        libs.androidx.ui.graphics
+    )
     implementation(
         libs.androidx.ui.tooling.preview
     )
-    implementation(libs.androidx.material3)
+    implementation(
+        libs.androidx.material3
+    )
     implementation(
         "androidx.compose.foundation:foundation"
     )
@@ -131,7 +158,16 @@ dependencies {
         "androidx.datastore:datastore-preferences:1.1.7"
     )
 
-    testImplementation(libs.junit)
+    implementation(
+        "com.google.maps.android:maps-compose:8.3.0"
+    )
+    implementation(
+        "com.google.android.gms:play-services-location:21.4.0"
+    )
+
+    testImplementation(
+        libs.junit
+    )
 
     androidTestImplementation(
         libs.androidx.junit
