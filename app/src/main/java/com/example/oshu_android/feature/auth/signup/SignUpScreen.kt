@@ -23,6 +23,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -31,11 +33,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.oshu_android.R
 
 @Composable
 fun SignUpRoute(
@@ -105,6 +112,14 @@ fun SignUpScreen(
     val colorScheme = MaterialTheme.colorScheme
     val focusManager = LocalFocusManager.current
 
+    var passwordVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var passwordConfirmVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = colorScheme.background,
@@ -154,12 +169,12 @@ fun SignUpScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(20.dp)
+                modifier = Modifier.height(6.dp)
             )
 
             Text(
                 text = "회원가입",
-                fontSize = 24.sp,
+                fontSize = 30.sp,
                 lineHeight = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground,
@@ -295,7 +310,11 @@ fun SignUpScreen(
                 isError =
                     uiState.passwordError != null,
                 visualTransformation =
-                    PasswordVisualTransformation(),
+                    if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 keyboardOptions =
                     KeyboardOptions(
                         keyboardType =
@@ -310,6 +329,15 @@ fun SignUpScreen(
                             )
                         }
                     ),
+                trailingIcon = {
+                    PasswordVisibilityButton(
+                        visible = passwordVisible,
+                        onClick = {
+                            passwordVisible =
+                                !passwordVisible
+                        },
+                    )
+                },
             )
 
             uiState.passwordError?.let {
@@ -347,7 +375,11 @@ fun SignUpScreen(
                 isError =
                     uiState.passwordConfirmError != null,
                 visualTransformation =
-                    PasswordVisualTransformation(),
+                    if (passwordConfirmVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                 keyboardOptions =
                     KeyboardOptions(
                         keyboardType =
@@ -360,6 +392,16 @@ fun SignUpScreen(
                             focusManager.clearFocus()
                         }
                     ),
+                trailingIcon = {
+                    PasswordVisibilityButton(
+                        visible =
+                            passwordConfirmVisible,
+                        onClick = {
+                            passwordConfirmVisible =
+                                !passwordConfirmVisible
+                        },
+                    )
+                },
             )
 
             uiState.passwordConfirmError?.let {
@@ -476,6 +518,8 @@ private fun SignUpTextField(
         KeyboardOptions.Default,
     keyboardActions: KeyboardActions =
         KeyboardActions.Default,
+    trailingIcon:
+    (@Composable () -> Unit)? = null,
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -496,6 +540,7 @@ private fun SignUpTextField(
                 fontSize = 13.sp,
             )
         },
+        trailingIcon = trailingIcon,
         singleLine = true,
         isError = isError,
         visualTransformation =
@@ -529,6 +574,37 @@ private fun SignUpTextField(
                         .copy(alpha = 0.50f),
             ),
     )
+}
+
+@Composable
+private fun PasswordVisibilityButton(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(36.dp),
+    ) {
+        Icon(
+            painter = painterResource(
+                if (visible) {
+                    R.drawable.ic_visibility_off
+                } else {
+                    R.drawable.ic_visibility
+                }
+            ),
+            contentDescription =
+                if (visible) {
+                    "비밀번호 숨기기"
+                } else {
+                    "비밀번호 보기"
+                },
+            modifier = Modifier.size(21.dp),
+            tint = colorScheme.primary,
+        )
+    }
 }
 
 @Composable
