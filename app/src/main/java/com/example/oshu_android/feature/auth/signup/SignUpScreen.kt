@@ -121,7 +121,7 @@ fun SignUpScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(44.dp),
+                    .height(48.dp),
                 horizontalArrangement =
                     Arrangement.SpaceBetween,
                 verticalAlignment =
@@ -129,7 +129,7 @@ fun SignUpScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(38.dp)
                         .clickable(
                             enabled = !uiState.isLoading,
                             onClick = onBackClick,
@@ -154,7 +154,7 @@ fun SignUpScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(4.dp)
+                modifier = Modifier.height(6.dp)
             )
 
             Text(
@@ -166,7 +166,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(16.dp)
+                modifier = Modifier.height(18.dp)
             )
 
             InputLabel(
@@ -174,7 +174,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(4.dp)
+                modifier = Modifier.height(9.dp)
             )
 
             Row(
@@ -225,9 +225,9 @@ fun SignUpScreen(
                         .width(96.dp)
                         .height(52.dp),
                     enabled = !uiState.isLoading,
-                    shape = RoundedCornerShape(11.dp),
+                    shape = RoundedCornerShape(7.dp),
                     contentPadding = PaddingValues(
-                        horizontal = 6.dp,
+                        horizontal = 10.dp,
                         vertical = 0.dp,
                     ),
                     colors =
@@ -261,8 +261,8 @@ fun SignUpScreen(
                         softWrap = false,
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp,
-                        fontWeight =
-                            FontWeight.SemiBold,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }
@@ -272,9 +272,9 @@ fun SignUpScreen(
                     if (
                         uiState.loginIdError == null
                     ) {
-                        12.dp
+                        22.dp
                     } else {
-                        4.dp
+                        7.dp
                     }
                 )
             )
@@ -284,7 +284,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(4.dp)
+                modifier = Modifier.height(9.dp)
             )
 
             SignUpTextField(
@@ -323,9 +323,9 @@ fun SignUpScreen(
                     if (
                         uiState.passwordError == null
                     ) {
-                        12.dp
+                        22.dp
                     } else {
-                        4.dp
+                        7.dp
                     }
                 )
             )
@@ -335,7 +335,7 @@ fun SignUpScreen(
             )
 
             Spacer(
-                modifier = Modifier.height(4.dp)
+                modifier = Modifier.height(9.dp)
             )
 
             SignUpTextField(
@@ -374,9 +374,9 @@ fun SignUpScreen(
                         uiState.passwordConfirmError ==
                         null
                     ) {
-                        14.dp
+                        38.dp
                     } else {
-                        5.dp
+                        23.dp
                     }
                 )
             )
@@ -403,7 +403,15 @@ fun SignUpScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(22.dp)
+                modifier = Modifier.height(
+                    if (
+                        uiState.generalError == null
+                    ) {
+                        44.dp
+                    } else {
+                        29.dp
+                    }
+                )
             )
 
             Button(
@@ -415,7 +423,7 @@ fun SignUpScreen(
                     .fillMaxWidth()
                     .height(54.dp),
                 enabled = uiState.canSubmit,
-                shape = RoundedCornerShape(13.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor =
@@ -494,7 +502,7 @@ private fun SignUpTextField(
             visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        shape = RoundedCornerShape(11.dp),
+        shape = RoundedCornerShape(7.dp),
         colors =
             OutlinedTextFieldDefaults.colors(
                 focusedContainerColor =
@@ -558,7 +566,7 @@ private fun AgreementSection(
                     color = colorScheme.surface.copy(
                         alpha = 0.82f
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(8.dp),
                 )
                 .clickable {
                     onAllTermsChanged(
@@ -589,7 +597,7 @@ private fun AgreementSection(
         }
 
         Spacer(
-            modifier = Modifier.height(5.dp)
+            modifier = Modifier.height(20.dp)
         )
 
         AgreementRow(
@@ -603,6 +611,10 @@ private fun AgreementSection(
             },
         )
 
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
         AgreementRow(
             checked =
                 uiState.privacyTermsAgreed,
@@ -612,6 +624,10 @@ private fun AgreementSection(
                     !uiState.privacyTermsAgreed
                 )
             },
+        )
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
         )
 
         AgreementRow(
