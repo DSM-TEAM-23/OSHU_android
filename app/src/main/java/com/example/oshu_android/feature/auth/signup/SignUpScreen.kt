@@ -154,12 +154,12 @@ fun SignUpScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(6.dp)
+                modifier = Modifier.height(20.dp)
             )
 
             Text(
                 text = "회원가입",
-                fontSize = 30.sp,
+                fontSize = 24.sp,
                 lineHeight = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground,
