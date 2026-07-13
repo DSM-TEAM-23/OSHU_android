@@ -1,12 +1,6 @@
 package com.example.oshu_android.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +10,7 @@ import com.example.oshu_android.feature.auth.login.LoginRoute
 import com.example.oshu_android.feature.auth.login.LoginViewModel
 import com.example.oshu_android.feature.auth.signup.SignUpRoute
 import com.example.oshu_android.feature.auth.signup.SignUpViewModel
+import com.example.oshu_android.feature.map.MapScreen
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
 
@@ -34,12 +29,15 @@ fun OshuNavGraph(
         ) {
             SplashScreen(
                 onboardingPreferences =
-                    appContainer.onboardingPreferences,
+                    appContainer
+                        .onboardingPreferences,
                 onOnboardingRequired = {
                     navController.navigate(
                         OshuRoutes.ONBOARDING
                     ) {
-                        popUpTo(OshuRoutes.SPLASH) {
+                        popUpTo(
+                            OshuRoutes.SPLASH
+                        ) {
                             inclusive = true
                         }
 
@@ -50,7 +48,9 @@ fun OshuNavGraph(
                     navController.navigate(
                         OshuRoutes.LOGIN
                     ) {
-                        popUpTo(OshuRoutes.SPLASH) {
+                        popUpTo(
+                            OshuRoutes.SPLASH
+                        ) {
                             inclusive = true
                         }
 
@@ -65,7 +65,8 @@ fun OshuNavGraph(
         ) {
             OnboardingScreen(
                 onboardingPreferences =
-                    appContainer.onboardingPreferences,
+                    appContainer
+                        .onboardingPreferences,
                 onFinished = {
                     navController.navigate(
                         OshuRoutes.LOGIN
@@ -85,12 +86,15 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.LOGIN,
         ) {
-            val loginViewModel: LoginViewModel =
+            val loginViewModel:
+                    LoginViewModel =
                 viewModel(
-                    factory = LoginViewModel.Factory(
-                        loginRepository =
-                            appContainer.loginRepository,
-                    ),
+                    factory =
+                        LoginViewModel.Factory(
+                            loginRepository =
+                                appContainer
+                                    .loginRepository,
+                        ),
                 )
 
             LoginRoute(
@@ -99,7 +103,9 @@ fun OshuNavGraph(
                     navController.navigate(
                         OshuRoutes.HOME
                     ) {
-                        popUpTo(OshuRoutes.LOGIN) {
+                        popUpTo(
+                            OshuRoutes.LOGIN
+                        ) {
                             inclusive = true
                         }
 
@@ -119,7 +125,8 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.SIGN_UP,
         ) {
-            val signUpViewModel: SignUpViewModel =
+            val signUpViewModel:
+                    SignUpViewModel =
                 viewModel(
                     factory =
                         SignUpViewModel.Factory(
@@ -138,7 +145,9 @@ fun OshuNavGraph(
                     navController.navigate(
                         OshuRoutes.LOGIN
                     ) {
-                        popUpTo(OshuRoutes.LOGIN) {
+                        popUpTo(
+                            OshuRoutes.LOGIN
+                        ) {
                             inclusive = true
                         }
 
@@ -151,22 +160,7 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.HOME,
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "메인 화면",
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .onBackground,
-                    style =
-                        MaterialTheme
-                            .typography
-                            .headlineMedium,
-                )
-            }
+            MapScreen()
         }
     }
 }
