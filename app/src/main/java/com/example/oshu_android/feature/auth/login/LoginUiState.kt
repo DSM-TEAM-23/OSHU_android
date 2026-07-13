@@ -25,15 +25,13 @@ enum class UserRole {
 }
 
 sealed interface LoginResult {
-    data class Success(val user: LoggedInUser) : LoginResult
-    data object InvalidCredentials : LoginResult
-    data class Failure(val message: String) : LoginResult
-}
+    data class Success(
+        val user: LoggedInUser,
+    ) : LoginResult
 
-fun interface LoginRepository {
-    suspend fun login(
-        loginId: String,
-        password: String,
-        keepLoggedIn: Boolean,
-    ): LoginResult
+    data object InvalidCredentials : LoginResult
+
+    data class Failure(
+        val message: String,
+    ) : LoginResult
 }

@@ -3,6 +3,7 @@ package com.example.oshu_android.feature.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.oshu_android.data.auth.LoginRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,8 +14,12 @@ class LoginViewModel(
     private val loginRepository: LoginRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(
+        LoginUiState()
+    )
+
+    val uiState: StateFlow<LoginUiState> =
+        _uiState.asStateFlow()
 
     fun onLoginIdChanged(value: String) {
         _uiState.update {
@@ -37,30 +42,50 @@ class LoginViewModel(
     }
 
     fun onPasswordVisibilityChanged() {
-        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+        _uiState.update {
+            it.copy(
+                isPasswordVisible =
+                    !it.isPasswordVisible,
+            )
+        }
     }
 
     fun onKeepLoggedInChanged(checked: Boolean) {
-        _uiState.update { it.copy(keepLoggedIn = checked) }
+        _uiState.update {
+            it.copy(
+                keepLoggedIn = checked,
+            )
+        }
     }
 
     fun login() {
-        val current = _uiState.value
-        if (current.isLoading) return
+        val currentState = _uiState.value
 
-        val normalizedLoginId = current.loginId.trim()
-        val loginIdError = if (normalizedLoginId.isBlank()) {
-            "아이디를 입력해주세요."
-        } else {
-            null
-        }
-        val passwordError = if (current.password.isBlank()) {
-            "비밀번호를 입력해주세요."
-        } else {
-            null
+        if (currentState.isLoading) {
+            return
         }
 
-        if (loginIdError != null || passwordError != null) {
+        val loginId = currentState.loginId.trim()
+        val password = currentState.password
+
+        val loginIdError =
+            if (loginId.isBlank()) {
+                "아이디를 입력해주세요."
+            } else {
+                null
+            }
+
+        val passwordError =
+            if (password.isBlank()) {
+                "비밀번호를 입력해주세요."
+            } else {
+                null
+            }
+
+        if (
+            loginIdError != null ||
+            passwordError != null
+        ) {
             _uiState.update {
                 it.copy(
                     loginIdError = loginIdError,
@@ -68,6 +93,7 @@ class LoginViewModel(
                     loginError = null,
                 )
             }
+
             return
         }
 
@@ -82,17 +108,18 @@ class LoginViewModel(
             }
 
             val result = loginRepository.login(
-                loginId = normalizedLoginId,
-                password = current.password,
-                keepLoggedIn = current.keepLoggedIn,
+                loginId = loginId,
+                password = password,
+                keepLoggedIn =
+                    currentState.keepLoggedIn,
             )
 
             when (result) {
                 is LoginResult.Success -> {
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
                             password = "",
+                            isLoading = false,
                             isLoginSuccessful = true,
                         )
                     }
@@ -102,7 +129,8 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            loginError = "아이디 또는 비밀번호를 확인해주세요.",
+                            loginError =
+                                "아이디 또는 비밀번호를 확인해주세요.",
                         )
                     }
                 }
@@ -119,18 +147,32 @@ class LoginViewModel(
         }
     }
 
-    /** 화면 이동 후 성공 상태를 초기화해 재이동을 막습니다. */
     fun onLoginSuccessHandled() {
-        _uiState.update { it.copy(isLoginSuccessful = false) }
+        _uiState.update {
+            it.copy(
+                isLoginSuccessful = false,
+            )
+        }
     }
 
     class Factory(
-        private val loginRepository: LoginRepository,
+        private val loginRepository:
+        LoginRepository,
     ) : ViewModelProvider.Factory {
+
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass.isAssignableFrom(LoginViewModel::class.java))
-            return LoginViewModel(loginRepository) as T
+        override fun <T : ViewModel> create(
+            modelClass: Class<T>,
+        ): T {
+            require(
+                modelClass.isAssignableFrom(
+                    LoginViewModel::class.java
+                )
+            )
+
+            return LoginViewModel(
+                loginRepository = loginRepository,
+            ) as T
         }
     }
 }
