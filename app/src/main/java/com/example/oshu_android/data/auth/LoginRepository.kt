@@ -1,6 +1,5 @@
 package com.example.oshu_android.data.auth
 
-import com.example.oshu_android.feature.auth.login.LoggedInUser
 import com.example.oshu_android.feature.auth.login.LoginResult
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
@@ -32,7 +31,7 @@ class LoginRepositoryImpl(
     ): LoginResult {
         return try {
             val response = authApi.login(
-                request = LoginRequest(
+                LoginRequest(
                     loginId = loginId,
                     password = password,
                 ),
@@ -51,12 +50,7 @@ class LoginRepositoryImpl(
                     )
 
                     LoginResult.Success(
-                        user = LoggedInUser(
-                            userId = body.userId,
-                            loginId = body.loginId,
-                            nickname = body.nickname,
-                            role = body.toLoggedInUser().role,
-                        ),
+                        user = body.toLoggedInUser(),
                     )
                 }
 
@@ -66,13 +60,13 @@ class LoginRepositoryImpl(
 
                 response.code() in 500..599 -> {
                     LoginResult.Failure(
-                        "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                        "서버에 문제가 발생했습니다.",
                     )
                 }
 
                 else -> {
                     LoginResult.Failure(
-                        "로그인에 실패했습니다. 다시 시도해주세요.",
+                        "로그인에 실패했습니다.",
                     )
                 }
             }
