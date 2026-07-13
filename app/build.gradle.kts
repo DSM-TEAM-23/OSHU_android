@@ -7,7 +7,9 @@ plugins {
 }
 
 val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
+val localPropertiesFile = rootProject.file(
+    "local.properties"
+)
 
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use {
@@ -15,7 +17,8 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-val baseUrl = localProperties.getProperty("BASE_URL") ?: ""
+val baseUrl =
+    localProperties.getProperty("BASE_URL") ?: ""
 
 android {
     namespace = "com.example.oshu_android"
@@ -52,8 +55,10 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility =
+            JavaVersion.VERSION_11
+        targetCompatibility =
+            JavaVersion.VERSION_11
     }
 
     kotlinOptions {
@@ -67,20 +72,32 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
+    implementation(
+        libs.androidx.lifecycle.runtime.ktx
+    )
+    implementation(
+        libs.androidx.activity.compose
+    )
 
-    implementation(platform(libs.androidx.compose.bom))
+    implementation(
+        platform(libs.androidx.compose.bom)
+    )
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
+    implementation(
+        libs.androidx.ui.tooling.preview
+    )
     implementation(libs.androidx.material3)
 
     implementation(
-        "androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0"
+        "androidx.compose.foundation:foundation"
+    )
+    
+    implementation(
+        "androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4"
     )
     implementation(
-        "androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0"
+        "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4"
     )
 
     implementation(
@@ -91,17 +108,21 @@ dependencies {
     )
 
     implementation(
-        "androidx.navigation:navigation-compose:2.9.8"
+        "androidx.navigation:navigation-compose:2.8.9"
     )
 
     implementation(
-        "androidx.datastore:datastore-preferences:1.2.1"
+        "androidx.datastore:datastore-preferences:1.1.7"
     )
-    
+
     testImplementation(libs.junit)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(
+        libs.androidx.junit
+    )
+    androidTestImplementation(
+        libs.androidx.espresso.core
+    )
     androidTestImplementation(
         platform(libs.androidx.compose.bom)
     )
@@ -109,7 +130,9 @@ dependencies {
         libs.androidx.ui.test.junit4
     )
 
-    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(
+        libs.androidx.ui.tooling
+    )
     debugImplementation(
         libs.androidx.ui.test.manifest
     )
