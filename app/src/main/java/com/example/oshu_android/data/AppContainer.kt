@@ -23,7 +23,8 @@ class AppContainer(
 }
 
 private class MemorySessionStore : SessionStore {
-    private var currentSession: LoginResponse? = null
+    private var currentSession:
+            LoginResponse? = null
 
     override suspend fun save(
         response: LoginResponse,
