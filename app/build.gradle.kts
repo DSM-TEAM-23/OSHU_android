@@ -45,9 +45,9 @@ if (secretsPropertiesFile.exists()) {
 val baseUrl =
     localProperties.getProperty("BASE_URL") ?: ""
 
-val mapsApiKey =
+val kakaoNativeAppKey =
     secretsProperties.getProperty(
-        "MAPS_API_KEY"
+        "KAKAO_NATIVE_APP_KEY"
     ) ?: ""
 
 android {
@@ -71,9 +71,11 @@ android {
             baseUrl
         )
 
-        manifestPlaceholders[
-            "MAPS_API_KEY"
-        ] = mapsApiKey
+        resValue(
+            "string",
+            "kakao_native_app_key",
+            kakaoNativeAppKey
+        )
     }
 
     buildTypes {
@@ -159,8 +161,9 @@ dependencies {
     )
 
     implementation(
-        "com.google.maps.android:maps-compose:8.3.0"
+        "com.kakao.maps.open:android:2.14.0"
     )
+
     implementation(
         "com.google.android.gms:play-services-location:21.4.0"
     )
