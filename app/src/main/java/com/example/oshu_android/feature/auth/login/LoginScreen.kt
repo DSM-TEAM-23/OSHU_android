@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.oshu.R
+import com.example.oshu_android.R
 
 private val OshuPink = Color(0xFFFF829B)
 private val OshuBackground = Color(0xFFFFF7F8)
