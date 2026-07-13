@@ -31,10 +31,10 @@ android {
         testInstrumentationRunner =
             "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            "String",
-            "BASE_URL",
-            "\"$baseUrl\""
+        resValue(
+            "string",
+            "oshu_api_base_url",
+            baseUrl
         )
     }
 
@@ -62,7 +62,6 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 
