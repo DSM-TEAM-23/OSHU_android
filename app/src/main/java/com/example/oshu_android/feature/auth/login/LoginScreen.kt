@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -192,8 +193,14 @@ fun LoginScreen(
                 ),
                 contentDescription = "OSHU",
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(90.dp),
+                    .width(240.dp)
+                    .height(100.dp)
+                    .graphicsLayer(
+                        scaleX = 3.3f,
+                        scaleY = 3.3f,
+                        translationX = -40f,
+                        translationY = 120f,
+                    ),
                 contentScale = ContentScale.Fit,
             )
 
