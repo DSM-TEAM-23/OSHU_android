@@ -12,29 +12,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
-private val Context.onboardingDataStore:
-        DataStore<Preferences> by preferencesDataStore(
+private val Context.onboardingDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "onboarding_preferences",
 )
 
 class OnboardingPreferences(
     context: Context,
 ) {
-    private val dataStore =
-        context.applicationContext.onboardingDataStore
+    private val dataStore = context.applicationContext.onboardingDataStore
 
-    val isCompleted: Flow<Boolean> =
-        dataStore.data
-            .catch { exception ->
-                if (exception is IOException) {
-                    emit(emptyPreferences())
-                } else {
-                    throw exception
-                }
+    val isCompleted: Flow<Boolean> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
             }
-            .map { preferences ->
-                preferences[IS_COMPLETED] ?: false
-            }
+        }
+        .map { preferences ->
+            preferences[IS_COMPLETED] ?: false
+        }
 
     suspend fun setCompleted() {
         dataStore.edit { preferences ->
@@ -44,14 +41,13 @@ class OnboardingPreferences(
 
     suspend fun reset() {
         dataStore.edit { preferences ->
-            preferences[IS_COMPLETED] = false
+            preferences.remove(IS_COMPLETED)
         }
     }
 
     private companion object {
-        val IS_COMPLETED =
-            booleanPreferencesKey(
-                "is_onboarding_completed"
-            )
+        val IS_COMPLETED = booleanPreferencesKey(
+            "is_onboarding_completed",
+        )
     }
 }
