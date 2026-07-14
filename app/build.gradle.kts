@@ -155,6 +155,10 @@ dependencies {
     )
 
     implementation(
+        "androidx.security:security-crypto:1.1.0"
+    )
+
+    implementation(
         "com.kakao.maps.open:android:2.14.0"
     )
 

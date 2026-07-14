@@ -1,6 +1,8 @@
 package com.example.oshu_android.data
 
 import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.oshu_android.data.auth.AuthModule
 import com.example.oshu_android.data.auth.LoginRepository
 import com.example.oshu_android.data.auth.LoginRepositoryImpl
@@ -51,19 +53,22 @@ class AppContainer(
     )
 }
 
+@Suppress("DEPRECATION")
 private class PreferencesSessionStore(
     context: Context,
 ) : SessionStore {
 
-    private val preferences = context.getSharedPreferences(
-        PREFERENCES_NAME,
-        Context.MODE_PRIVATE,
+    private val preferences = EncryptedSharedPreferences.create(
+        context,
+        SECURE_PREFERENCES_NAME,
+        MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 
-    private var sessionAccessToken: String? = preferences.getString(
-        ACCESS_TOKEN_KEY,
-        null,
-    )
+    private var sessionAccessToken: String? = migrateLegacyToken(context)
 
     override fun getAccessToken(): String? {
         return sessionAccessToken
@@ -97,8 +102,35 @@ private class PreferencesSessionStore(
             .apply()
     }
 
+    private fun migrateLegacyToken(context: Context): String? {
+        val secureToken = preferences.getString(
+            ACCESS_TOKEN_KEY,
+            null,
+        )
+        val legacyToken = context.getSharedPreferences(
+            LEGACY_PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        ).getString(
+            ACCESS_TOKEN_KEY,
+            null,
+        )
+
+        if (secureToken.isNullOrBlank() && !legacyToken.isNullOrBlank()) {
+            preferences.edit()
+                .putString(
+                    ACCESS_TOKEN_KEY,
+                    legacyToken,
+                )
+                .commit()
+        }
+
+        context.deleteSharedPreferences(LEGACY_PREFERENCES_NAME)
+        return preferences.getString(ACCESS_TOKEN_KEY, null)
+    }
+
     private companion object {
-        const val PREFERENCES_NAME = "oshu_session"
+        const val LEGACY_PREFERENCES_NAME = "oshu_session"
+        const val SECURE_PREFERENCES_NAME = "oshu_secure_session"
         const val ACCESS_TOKEN_KEY = "access_token"
     }
 }
