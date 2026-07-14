@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
+import com.example.oshu_android.data.store.toOpeningHoursLabel
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -349,6 +350,8 @@ private fun StoreListCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val openingHours = store.openingHours.toOpeningHoursLabel()
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -380,26 +383,28 @@ private fun StoreListCard(
                         overflow = TextOverflow.Ellipsis,
                     )
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    if (openingHours != null) {
+                        Spacer(modifier = Modifier.width(6.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_time),
-                            contentDescription = "영업시간",
-                            tint = ListHint,
-                            modifier = Modifier.size(14.dp),
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_time),
+                                contentDescription = "영업시간",
+                                tint = ListHint,
+                                modifier = Modifier.size(14.dp),
+                            )
 
-                        Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
 
-                        Text(
-                            text = store.openingHours.toDisplayHours(),
-                            color = ListHint,
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                        )
+                            Text(
+                                text = openingHours,
+                                color = ListHint,
+                                fontSize = 10.sp,
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
 
@@ -594,20 +599,6 @@ private fun EmptyStoreList() {
             color = ListHint,
             fontSize = 15.sp,
         )
-    }
-}
-
-private fun String?.toDisplayHours(): String {
-    val value = this.orEmpty()
-    val matches = Regex("(?:T|\\s)(\\d{1,2}):(\\d{2})").findAll(value)
-        .map { "${it.groupValues[1].toInt()}:${it.groupValues[2]}" }
-        .toList()
-
-    return when {
-        matches.size >= 2 -> "${matches[0]} ~ ${matches[1]}"
-        matches.size == 1 -> "${matches[0]} ~ 12:00"
-        value.matches(Regex("\\d{1,2}:\\d{2}\\s*~\\s*\\d{1,2}:\\d{2}")) -> value
-        else -> "9:00 ~ 12:00"
     }
 }
 
