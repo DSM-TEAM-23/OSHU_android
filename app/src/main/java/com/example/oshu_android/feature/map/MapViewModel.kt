@@ -3,6 +3,7 @@ package com.example.oshu_android.feature.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.oshu_android.data.store.MapStoreResult
 import com.example.oshu_android.data.store.StoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,50 +12,71 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MapViewModel(
-    private val storeRepository:
-    StoreRepository,
+    private val storeRepository: StoreRepository,
 ) : ViewModel() {
 
     private val _uiState =
-        MutableStateFlow(
-            MapUiState()
-        )
+        MutableStateFlow(MapUiState())
 
-    val uiState:
-            StateFlow<MapUiState> =
+    val uiState: StateFlow<MapUiState> =
         _uiState.asStateFlow()
-
-    private var currentLatitude =
-        INITIAL_LATITUDE
-
-    private var currentLongitude =
-        INITIAL_LONGITUDE
 
     init {
         refresh()
     }
 
     fun refresh() {
-        loadStores(
-            latitude = currentLatitude,
-            longitude = currentLongitude,
-        )
+        if (_uiState.value.isLoading) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                )
+            }
+
+            when (
+                val result =
+                    storeRepository.getMapStores(
+                        latitude =
+                            INITIAL_LATITUDE,
+                        longitude =
+                            INITIAL_LONGITUDE,
+                        radius =
+                            INITIAL_RADIUS,
+                    )
+            ) {
+                is MapStoreResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            stores = result.stores,
+                            selectedStoreId =
+                                result.stores
+                                    .firstOrNull()
+                                    ?.storeId,
+                            isLoading = false,
+                            errorMessage = null,
+                        )
+                    }
+                }
+
+                is MapStoreResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage =
+                                result.message,
+                        )
+                    }
+                }
+            }
+        }
     }
 
-    fun updateMapCenter(
-        latitude: Double,
-        longitude: Double,
-    ) {
-        currentLatitude = latitude
-        currentLongitude = longitude
-
-        loadStores(
-            latitude = latitude,
-            longitude = longitude,
-        )
-    }
-
-    fun onSearchQueryChange(
+    fun onSearchQueryChanged(
         query: String,
     ) {
         _uiState.update {
@@ -65,26 +87,30 @@ class MapViewModel(
         }
     }
 
-    fun onTimeSaleFilterClick() {
-        val enabled =
-            !_uiState.value.timeSaleOnly
-
+    fun onTimeSaleClick() {
         _uiState.update {
             it.copy(
-                timeSaleOnly = enabled,
+                isTimeSaleSelected =
+                    !it.isTimeSaleSelected,
                 selectedStoreId = null,
             )
         }
-
-        refresh()
     }
 
-    fun onHotPlaceFilterClick() {
+    fun onHotDealClick() {
         _uiState.update {
             it.copy(
-                hotPlaceOnly =
-                    !it.hotPlaceOnly,
-                selectedStoreId = null,
+                isHotDealSelected =
+                    !it.isHotDealSelected,
+            )
+        }
+    }
+
+    fun onReservationClick() {
+        _uiState.update {
+            it.copy(
+                isReservationSelected =
+                    !it.isReservationSelected,
             )
         }
     }
@@ -112,62 +138,15 @@ class MapViewModel(
     ) {
         _uiState.update {
             it.copy(
-                isLoading = false,
                 errorMessage = message,
             )
         }
     }
 
-    fun clearError() {
+    fun onErrorMessageShown() {
         _uiState.update {
             it.copy(
                 errorMessage = null,
-            )
-        }
-    }
-
-    private fun loadStores(
-        latitude: Double,
-        longitude: Double,
-    ) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null,
-                )
-            }
-
-            val result =
-                storeRepository.getMapStores(
-                    latitude = latitude,
-                    longitude = longitude,
-                    radius = DEFAULT_RADIUS,
-                    timeSaleOnly =
-                        _uiState.value
-                            .timeSaleOnly,
-                )
-
-            result.fold(
-                onSuccess = { stores ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            stores = stores,
-                            selectedStoreId = null,
-                        )
-                    }
-                },
-                onFailure = { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage =
-                                throwable.message
-                                    ?: "가게 정보를 불러오지 못했습니다.",
-                        )
-                    }
-                },
             )
         }
     }
@@ -177,31 +156,35 @@ class MapViewModel(
         StoreRepository,
     ) : ViewModelProvider.Factory {
 
-        @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>,
         ): T {
-            require(
+            if (
                 modelClass.isAssignableFrom(
-                    MapViewModel::class.java
+                    MapViewModel::class.java,
                 )
-            )
+            ) {
+                @Suppress("UNCHECKED_CAST")
+                return MapViewModel(
+                    storeRepository =
+                        storeRepository,
+                ) as T
+            }
 
-            return MapViewModel(
-                storeRepository =
-                    storeRepository,
-            ) as T
+            throw IllegalArgumentException(
+                "Unknown ViewModel class: ${modelClass.name}",
+            )
         }
     }
 
     companion object {
         const val INITIAL_LATITUDE =
-            36.3624
+            36.3622
 
         const val INITIAL_LONGITUDE =
-            127.3445
+            127.3449
 
-        const val DEFAULT_RADIUS =
+        const val INITIAL_RADIUS =
             1500
     }
 }
