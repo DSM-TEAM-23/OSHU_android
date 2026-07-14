@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -328,13 +329,24 @@ private fun TimeSaleCard(timeSale: TimeSaleResponse) {
                     .padding(start = 12.dp),
             ) {
                 Text(timeSale.productName, color = OshuTextPrimary, fontSize = 14.sp)
-                Text(
-                    text = "₩${timeSale.originalPrice}  ₩${timeSale.salePrice}",
-                    color = OshuPink,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                Row(
                     modifier = Modifier.padding(top = 6.dp),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "₩${timeSale.originalPrice}",
+                        color = OshuTextSecondary,
+                        fontSize = 13.sp,
+                        textDecoration = TextDecoration.LineThrough,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "₩${timeSale.salePrice}",
+                        color = OshuPink,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
 
             Surface(color = OshuPink, shape = RoundedCornerShape(6.dp)) {
