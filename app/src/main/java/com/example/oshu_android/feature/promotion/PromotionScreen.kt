@@ -122,7 +122,7 @@ fun PromotionScreen(
                     PromotionHero(
                         promotion = promotion,
                         onClick = {
-                            onPromotionClick(promotion.id)
+                            onPromotionClick(promotion.storeId)
                         },
                     )
                 }
@@ -163,7 +163,7 @@ fun PromotionScreen(
                             PromotionLargeCard(
                                 promotion = promotion,
                                 onClick = {
-                                    onPromotionClick(promotion.id)
+                                    onPromotionClick(promotion.storeId)
                                 },
                             )
                         }
@@ -180,7 +180,7 @@ fun PromotionScreen(
                                         promotion = promotion,
                                         modifier = Modifier.weight(1f),
                                         onClick = {
-                                            onPromotionClick(promotion.id)
+                                            onPromotionClick(promotion.storeId)
                                         },
                                     )
                                 }
@@ -199,7 +199,7 @@ fun PromotionScreen(
                             PromotionHorizontalCard(
                                 promotion = promotion,
                                 onClick = {
-                                    onPromotionClick(promotion.id)
+                                    onPromotionClick(promotion.storeId)
                                 },
                             )
                         }

@@ -6,6 +6,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.oshu_android.data.AppContainer
 import com.example.oshu_android.feature.auth.login.LoginRoute
 import com.example.oshu_android.feature.auth.login.LoginViewModel
@@ -19,6 +21,8 @@ import com.example.oshu_android.feature.promotion.PromotionRoute
 import com.example.oshu_android.feature.promotion.PromotionViewModel
 import com.example.oshu_android.feature.storelist.StoreListRoute
 import com.example.oshu_android.feature.storelist.StoreListViewModel
+import com.example.oshu_android.feature.storedetail.StoreDetailRoute
+import com.example.oshu_android.feature.storedetail.StoreDetailViewModel
 
 @Composable
 fun OshuNavGraph(
@@ -170,6 +174,9 @@ fun OshuNavGraph(
                         OshuRoutes.PROMOTION,
                     )
                 },
+                onStoreDetailClick = { storeId ->
+                    navController.navigate("${OshuRoutes.STORE_DETAIL}/$storeId")
+                },
             )
         }
 
@@ -196,6 +203,8 @@ fun OshuNavGraph(
                     )
                 },
                 onStoreDetailClick = {
+                    storeId ->
+                    navController.navigate("${OshuRoutes.STORE_DETAIL}/$storeId")
                 },
             )
         }
@@ -221,7 +230,32 @@ fun OshuNavGraph(
                         OshuRoutes.STORE_LIST,
                     )
                 },
-                onPromotionClick = {
+                onPromotionClick = { promotionId ->
+                    navController.navigate("${OshuRoutes.STORE_DETAIL}/$promotionId")
+                },
+            )
+        }
+
+        composable(
+            route = "${OshuRoutes.STORE_DETAIL}/{storeId}",
+            arguments = listOf(
+                navArgument("storeId") {
+                    type = NavType.LongType
+                },
+            ),
+        ) { backStackEntry ->
+            val storeId = backStackEntry.arguments?.getLong("storeId") ?: return@composable
+            val storeDetailViewModel: StoreDetailViewModel = viewModel(
+                factory = StoreDetailViewModel.Factory(
+                    storeRepository = appContainer.storeRepository,
+                    storeId = storeId,
+                ),
+            )
+
+            StoreDetailRoute(
+                viewModel = storeDetailViewModel,
+                onBackClick = {
+                    navController.popBackStack()
                 },
             )
         }
