@@ -1,5 +1,7 @@
 package com.example.oshu_android.feature.storedetail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,6 +47,8 @@ import com.example.oshu_android.R
 import com.example.oshu_android.data.store.CrowdStatusResponse
 import com.example.oshu_android.data.store.StoreDetailResponse
 import com.example.oshu_android.data.store.TimeSaleResponse
+import com.example.oshu_android.data.store.StoreCardResponse
+import com.example.oshu_android.feature.map.KakaoMapView
 import com.example.oshu_android.ui.theme.OshuBorder
 import com.example.oshu_android.ui.theme.OshuPink
 import com.example.oshu_android.ui.theme.OshuPinkLight
@@ -57,6 +62,7 @@ private val DetailBackground = Color(0xFFFFF8F9)
 fun StoreDetailRoute(
     viewModel: StoreDetailViewModel,
     onBackClick: () -> Unit,
+    onInquiryClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -64,6 +70,7 @@ fun StoreDetailRoute(
         uiState = uiState,
         onBackClick = onBackClick,
         onRetry = viewModel::refresh,
+        onInquiryClick = onInquiryClick,
     )
 }
 
@@ -72,6 +79,7 @@ fun StoreDetailScreen(
     uiState: StoreDetailUiState,
     onBackClick: () -> Unit,
     onRetry: () -> Unit,
+    onInquiryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -79,6 +87,20 @@ fun StoreDetailScreen(
         containerColor = DetailBackground,
         topBar = {
             StoreDetailTopBar(onBackClick = onBackClick)
+        },
+        bottomBar = {
+            val context = LocalContext.current
+            StoreDetailBottomBar(
+                onInquiryClick = onInquiryClick,
+                onDirectionsClick = {
+                    uiState.store?.let { store ->
+                        val uri = Uri.parse(
+                            "geo:${store.latitude ?: 36.3622},${store.longitude ?: 127.3562}?q=${Uri.encode(store.name)}",
+                        )
+                        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    }
+                },
+            )
         },
     ) { paddingValues ->
         when {
@@ -378,14 +400,27 @@ private fun LocationInfo(store: StoreDetailResponse) {
             shape = RoundedCornerShape(12.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, OshuBorder),
         ) {
-            Box(
+            KakaoMapView(
+                stores = listOf(
+                    StoreCardResponse(
+                        storeId = store.storeId,
+                        name = store.name,
+                        category = store.category,
+                        latitude = store.latitude,
+                        longitude = store.longitude,
+                    ),
+                ),
+                selectedStoreId = store.storeId,
+                onStoreClick = {},
+                onMapClick = {},
+                onMapError = {},
+                initialLatitude = store.latitude ?: 36.3622,
+                initialLongitude = store.longitude ?: 127.3562,
+                initialZoomLevel = 17,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = "지도 위치", color = OshuTextSecondary, fontSize = 14.sp)
-            }
+                    .height(150.dp),
+            )
         }
         Text(
             text = store.address,
@@ -393,6 +428,42 @@ private fun LocationInfo(store: StoreDetailResponse) {
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 10.dp),
         )
+    }
+}
+
+@Composable
+private fun StoreDetailBottomBar(
+    onInquiryClick: () -> Unit,
+    onDirectionsClick: () -> Unit,
+) {
+    Surface(
+        color = Color.White,
+        shadowElevation = 8.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Button(
+                onClick = onDirectionsClick,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = OshuPink),
+                border = androidx.compose.foundation.BorderStroke(1.dp, OshuPink),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("길찾기")
+            }
+            Button(
+                onClick = onInquiryClick,
+                modifier = Modifier.weight(1.4f),
+                colors = ButtonDefaults.buttonColors(containerColor = OshuPink),
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Text("문의하기", color = OshuWhite)
+            }
+        }
     }
 }
 
