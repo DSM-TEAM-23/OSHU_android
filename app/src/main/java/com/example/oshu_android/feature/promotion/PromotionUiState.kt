@@ -1,8 +1,12 @@
 package com.example.oshu_android.feature.promotion
 
+import com.example.oshu_android.data.store.PromotionResponse
+
 data class PromotionUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
     val selectedCategory: PromotionCategory = PromotionCategory.ALL,
-    val promotions: List<PromotionItem> = samplePromotions,
+    val promotions: List<PromotionItem> = emptyList(),
 ) {
     val filteredPromotions: List<PromotionItem>
         get() = promotions.filter { promotion ->
@@ -17,79 +21,102 @@ enum class PromotionCategory(
     ALL("전체 딜"),
     RESTAURANT("음식점"),
     CAFE("카페"),
-    GROCERY("식료품"),
+    GROCERY("식료품");
+
+    companion object {
+        fun fromType(
+            type: String?,
+        ): PromotionCategory {
+            return when (type?.trim()?.uppercase()) {
+                "RESTAURANT",
+                "FOOD",
+                "DINING",
+                "음식점",
+                "식당" -> RESTAURANT
+
+                "CAFE",
+                "COFFEE",
+                "BAKERY",
+                "카페",
+                "베이커리" -> CAFE
+
+                "GROCERY",
+                "MART",
+                "MARKET",
+                "식료품",
+                "마트" -> GROCERY
+
+                else -> ALL
+            }
+        }
+    }
 }
 
 data class PromotionItem(
     val id: Long,
+    val storeId: Long,
+    val storeName: String,
     val title: String,
-    val subtitle: String,
-    val badge: String,
-    val discountText: String?,
+    val content: String,
+    val type: String,
+    val imageUrl: String?,
+    val startAt: String?,
+    val endAt: String?,
+    val status: String,
     val category: PromotionCategory,
-    val colorStart: Long,
-    val colorEnd: Long,
 )
 
-val samplePromotions = listOf(
-    PromotionItem(
-        id = 1L,
-        title = "오늘의 빵: 50% 할인",
-        subtitle = "오슈 베이커리",
-        badge = "마감 세일",
-        discountText = "00:42:15",
-        category = PromotionCategory.CAFE,
-        colorStart = 0xFFD89154,
-        colorEnd = 0xFFF5D0A4,
-    ),
-    PromotionItem(
-        id = 2L,
-        title = "점심 특선",
-        subtitle = "비스트로 서울",
-        badge = "편안한 분위기",
-        discountText = null,
-        category = PromotionCategory.RESTAURANT,
-        colorStart = 0xFFB86F45,
-        colorEnd = 0xFFF1C28D,
-    ),
-    PromotionItem(
-        id = 3L,
-        title = "무료 쿠키 증정",
-        subtitle = "어반 로스트",
-        badge = "그랜드 오픈",
-        discountText = null,
-        category = PromotionCategory.CAFE,
-        colorStart = 0xFFAF7B58,
-        colorEnd = 0xFFE9C597,
-    ),
-    PromotionItem(
-        id = 4L,
-        title = "과일 바구니 세트",
-        subtitle = "싱싱 마트",
-        badge = "반짝 세일",
-        discountText = "-30%",
-        category = PromotionCategory.GROCERY,
-        colorStart = 0xFFC5A45C,
-        colorEnd = 0xFFF2DB93,
-    ),
-    PromotionItem(
-        id = 5L,
-        title = "심야 콤보",
-        subtitle = "유성 왕조",
-        badge = "식사 추천",
-        discountText = null,
-        category = PromotionCategory.RESTAURANT,
-        colorStart = 0xFF9C6046,
-        colorEnd = 0xFFDBA35C,
-    ),
-    PromotionItem(
-        id = 6L,
-        title = "주말 마켓",
-        subtitle = "커뮤니티 광장",
-        badge = "주말 한정",
-        discountText = null,
-        category = PromotionCategory.GROCERY,
-        colorStart = 0xFF7FAD7D,
-        colorEnd = 0xFFD5E4A8,
-    ),
-)
+fun PromotionResponse.toPromotionItem(): PromotionItem {
+    val promotionType = type.orEmpty()
+
+    return PromotionItem(
+        id = promotionId,
+        storeId = storeId,
+        storeName = storeName.orEmpty(),
+        title = title.orEmpty().ifBlank {
+            "프로모션"
+        },
+        content = content.orEmpty(),
+        type = promotionType,
+        imageUrl = imageUrl?.takeIf {
+            it.isNotBlank()
+        },
+        startAt = startAt,
+        endAt = endAt,
+        status = status.orEmpty(),
+        category = PromotionCategory.fromType(
+            promotionType,
+        ),
+    )
+}
+
+fun PromotionItem.badgeLabel(): String {
+    return when (type.trim().uppercase()) {
+        "TIME_SALE" -> "타임 세일"
+        "SALE" -> "할인 행사"
+        "EVENT" -> "이벤트"
+        "COUPON" -> "쿠폰 혜택"
+        else -> {
+            if (status.isNotBlank()) {
+                status
+            } else {
+                "진행 중"
+            }
+        }
+    }
+}
+
+fun PromotionItem.periodLabel(): String {
+    val start = startAt
+        ?.replace("T", " ")
+        ?.take(16)
+
+    val end = endAt
+        ?.replace("T", " ")
+        ?.take(16)
+
+    return listOfNotNull(
+        start,
+        end,
+    ).joinToString(" ~ ")
+}
