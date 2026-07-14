@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
@@ -45,19 +44,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
-    onboardingPreferences:
-    OnboardingPreferences,
+    onboardingPreferences: OnboardingPreferences,
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pages = onboardingPages
     val pagerState = rememberPagerState(
-        pageCount = {
-            pages.size
-        },
+        initialPage = 0,
+        pageCount = { pages.size },
     )
     val coroutineScope = rememberCoroutineScope()
     val colorScheme = MaterialTheme.colorScheme
+    val isLastPage = pagerState.currentPage == pages.lastIndex
 
     var isCompleting by rememberSaveable {
         mutableStateOf(false)
@@ -71,11 +69,8 @@ fun OnboardingScreen(
         isCompleting = true
 
         coroutineScope.launch {
-            try {
-                onboardingPreferences.setCompleted()
-            } finally {
-                onFinished()
-            }
+            onboardingPreferences.setCompleted()
+            onFinished()
         }
     }
 
@@ -85,23 +80,17 @@ fun OnboardingScreen(
             .background(colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(
-                horizontal = 20.dp,
-            ),
-        horizontalAlignment =
-            Alignment.CenterHorizontally,
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            horizontalArrangement =
-                Arrangement.SpaceBetween,
-            verticalAlignment =
-                Alignment.CenterVertically,
         ) {
             Text(
                 text = "OSHU",
+                modifier = Modifier.align(Alignment.Center),
                 color = colorScheme.primary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -109,14 +98,16 @@ fun OnboardingScreen(
 
             Text(
                 text = "건너뛰기",
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable(
+                        enabled = !isCompleting,
+                        onClick = {
+                            completeOnboarding()
+                        },
+                    ),
                 color = colorScheme.onBackground,
                 fontSize = 14.sp,
-                modifier = Modifier.clickable(
-                    enabled = !isCompleting,
-                    onClick = {
-                        completeOnboarding()
-                    },
-                ),
             )
         }
 
@@ -126,49 +117,42 @@ fun OnboardingScreen(
                 .fillMaxWidth()
                 .weight(1f),
             pageSpacing = 20.dp,
+            userScrollEnabled = !isCompleting,
         ) { pageIndex ->
             val page = pages[pageIndex]
 
             Column(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment =
-                    Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(
-                    modifier = Modifier.weight(0.22f)
+                    modifier = Modifier.weight(0.22f),
                 )
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .aspectRatio(1f)
-                        .clip(
-                            RoundedCornerShape(20.dp)
-                        )
+                        .clip(RoundedCornerShape(20.dp))
                         .background(colorScheme.surface)
                         .border(
                             width = 1.dp,
-                            color = colorScheme.outline
-                                .copy(alpha = 0.35f),
-                            shape =
-                                RoundedCornerShape(20.dp),
+                            color = colorScheme.outline.copy(alpha = 0.35f),
+                            shape = RoundedCornerShape(20.dp),
                         )
                         .padding(12.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
-                        painter = painterResource(
-                            page.imageRes
-                        ),
-                        contentDescription =
-                            page.imageDescription,
+                        painter = painterResource(page.imageRes),
+                        contentDescription = page.imageDescription,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
                     )
                 }
 
                 Spacer(
-                    modifier = Modifier.weight(0.28f)
+                    modifier = Modifier.weight(0.28f),
                 )
 
                 Text(
@@ -181,78 +165,80 @@ fun OnboardingScreen(
                 )
 
                 Spacer(
-                    modifier = Modifier.height(14.dp)
+                    modifier = Modifier.height(14.dp),
                 )
 
                 Text(
                     text = page.description,
-                    color =
-                        colorScheme.onSurfaceVariant,
+                    color = colorScheme.onSurfaceVariant,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center,
                     lineHeight = 21.sp,
                 )
 
                 Spacer(
-                    modifier = Modifier.weight(0.22f)
+                    modifier = Modifier.weight(0.22f),
                 )
             }
         }
 
         Row(
-            horizontalArrangement =
-                Arrangement.spacedBy(8.dp),
-            verticalAlignment =
-                Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             pages.indices.forEach { index ->
-                val isSelected =
-                    pagerState.currentPage == index
+                val selected = pagerState.currentPage == index
 
                 Box(
                     modifier = Modifier
                         .height(8.dp)
                         .width(
-                            if (isSelected) {
+                            if (selected) {
                                 26.dp
                             } else {
                                 8.dp
-                            }
+                            },
                         )
                         .clip(
-                            if (isSelected) {
+                            if (selected) {
                                 RoundedCornerShape(50)
                             } else {
                                 CircleShape
-                            }
+                            },
                         )
                         .background(
-                            if (isSelected) {
+                            if (selected) {
                                 colorScheme.primary
                             } else {
-                                colorScheme.outline
-                                    .copy(alpha = 0.45f)
-                            }
+                                colorScheme.outline.copy(alpha = 0.45f)
+                            },
                         ),
                 )
             }
         }
 
         Spacer(
-            modifier = Modifier.height(54.dp)
+            modifier = Modifier.height(12.dp),
+        )
+
+        Text(
+            text = "${pagerState.currentPage + 1} / ${pages.size}",
+            color = colorScheme.onSurfaceVariant,
+            fontSize = 13.sp,
+        )
+
+        Spacer(
+            modifier = Modifier.height(30.dp),
         )
 
         Button(
             onClick = {
-                if (
-                    pagerState.currentPage ==
-                    pages.lastIndex
-                ) {
+                if (isLastPage) {
                     completeOnboarding()
                 } else {
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(
-                            pagerState.currentPage + 1
+                            page = pagerState.currentPage + 1,
                         )
                     }
                 }
@@ -265,29 +251,18 @@ fun OnboardingScreen(
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary,
-                disabledContainerColor =
-                    colorScheme.primary.copy(
-                        alpha = 0.55f
-                    ),
+                disabledContainerColor = colorScheme.primary.copy(alpha = 0.55f),
             ),
         ) {
             Text(
-                text =
-                    if (
-                        pagerState.currentPage ==
-                        pages.lastIndex
-                    ) {
-                        "시작하기"
-                    } else {
-                        "다음"
-                    },
+                text = if (isLastPage) "시작하기" else "다음",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
             )
         }
 
         Spacer(
-            modifier = Modifier.height(16.dp)
+            modifier = Modifier.height(16.dp),
         )
     }
 }
