@@ -158,7 +158,7 @@ fun StoreListScreen(
                 modifier = Modifier.padding(
                     start = 20.dp,
                     end = 20.dp,
-                    top = 14.dp,
+                    top = 10.dp,
                 ),
             )
 
@@ -178,7 +178,7 @@ fun StoreListScreen(
                     top = 14.dp,
                     bottom = 20.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(
                     items = uiState.filteredStores,
@@ -216,15 +216,15 @@ private fun StoreListHeader() {
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(
-                    top = 18.dp,
-                    bottom = 18.dp,
+                    top = 14.dp,
+                    bottom = 14.dp,
                 ),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "OSHU",
                 color = ListPrimary,
-                fontSize = 24.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
         }
@@ -240,8 +240,8 @@ private fun StoreListSearchField(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(28.dp),
+            .height(48.dp),
+        shape = RoundedCornerShape(24.dp),
         color = Color.White,
         border = BorderStroke(
             width = 1.dp,
@@ -253,7 +253,7 @@ private fun StoreListSearchField(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    horizontal = 18.dp,
+                    horizontal = 14.dp,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -263,7 +263,7 @@ private fun StoreListSearchField(
                 ),
                 contentDescription = "검색",
                 tint = ListPrimary,
-                modifier = Modifier.size(23.dp),
+                modifier = Modifier.size(20.dp),
             )
 
             BasicTextField(
@@ -272,12 +272,12 @@ private fun StoreListSearchField(
                 modifier = Modifier
                     .weight(1f)
                     .padding(
-                        horizontal = 14.dp,
+                        horizontal = 10.dp,
                     ),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = ListBrown,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                 ),
                 decorationBox = { innerTextField ->
                     Box {
@@ -285,7 +285,7 @@ private fun StoreListSearchField(
                             Text(
                                 text = "지역 혜택 검색...",
                                 color = ListHint,
-                                fontSize = 16.sp,
+                                fontSize = 15.sp,
                             )
                         }
 
@@ -308,7 +308,7 @@ private fun StoreCategoryTabs(
         contentPadding = PaddingValues(
             horizontal = 20.dp,
         ),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(
             items = StoreListCategory.entries,
@@ -317,11 +317,11 @@ private fun StoreCategoryTabs(
 
             Surface(
                 modifier = Modifier
-                    .height(46.dp)
+                    .height(40.dp)
                     .clickable {
                         onCategorySelected(category)
                     },
-                shape = RoundedCornerShape(23.dp),
+                shape = RoundedCornerShape(20.dp),
                 color = if (selected) ListPrimary else Color.White,
                 border = if (selected) {
                     null
@@ -334,14 +334,14 @@ private fun StoreCategoryTabs(
             ) {
                 Box(
                     modifier = Modifier.padding(
-                        horizontal = 19.dp,
+                        horizontal = 15.dp,
                     ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = category.label,
                         color = if (selected) Color.White else ListBrown,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -371,7 +371,7 @@ private fun StoreListCard(
             StoreImage(store = store)
 
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(12.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -381,13 +381,13 @@ private fun StoreListCard(
                         text = store.name,
                         modifier = Modifier.weight(1f),
                         color = Color(0xFF222222),
-                        fontSize = 20.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -396,7 +396,7 @@ private fun StoreListCard(
                             painter = painterResource(R.drawable.ic_time),
                             contentDescription = "영업시간",
                             tint = ListHint,
-                            modifier = Modifier.size(15.dp),
+                            modifier = Modifier.size(14.dp),
                         )
 
                         Spacer(modifier = Modifier.width(4.dp))
@@ -404,26 +404,26 @@ private fun StoreListCard(
                         Text(
                             text = store.openingHours.toDisplayHours(),
                             color = ListHint,
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             maxLines = 1,
                         )
                     }
                 }
 
                 Spacer(
-                    modifier = Modifier.height(8.dp),
+                    modifier = Modifier.height(6.dp),
                 )
 
                 Text(
                     text = "${storeDistanceLabel(store, currentLocation)} · ${store.category.ifBlank { "기타" }}",
                     color = ListPrimary,
-                    fontSize = 15.sp,
+                    fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(
-                    modifier = Modifier.height(12.dp),
+                    modifier = Modifier.height(8.dp),
                 )
 
                 Row(
@@ -456,7 +456,7 @@ private fun StoreImage(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(190.dp)
+            .height(154.dp)
             .clip(
                 RoundedCornerShape(
                     topStart = 16.dp,
@@ -577,11 +577,11 @@ private fun StoreListTag(
         Text(
             text = text,
             modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 5.dp,
+                horizontal = 6.dp,
+                vertical = 4.dp,
             ),
             color = ListPrimary,
-            fontSize = 11.sp,
+            fontSize = 10.sp,
         )
     }
 }
@@ -626,7 +626,7 @@ private fun StoreListBottomBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(92.dp),
+            .height(78.dp),
         color = Color.White.copy(alpha = 0.96f),
         shadowElevation = 8.dp,
     ) {
@@ -634,7 +634,7 @@ private fun StoreListBottomBar(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    horizontal = 48.dp,
+                    horizontal = 40.dp,
                 ),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -678,8 +678,8 @@ private fun StoreListNavigationItem(
 ) {
     Box(
         modifier = Modifier
-            .width(76.dp)
-            .height(70.dp)
+            .width(64.dp)
+            .height(58.dp)
             .clip(
                 RoundedCornerShape(16.dp),
             )
@@ -707,7 +707,7 @@ private fun StoreListNavigationItem(
                     ),
                     contentDescription = label,
                     tint = if (selected) Color.White else ListBrown,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier.size(22.dp),
                 )
 
                 if (showBadge && !selected) {
@@ -724,13 +724,13 @@ private fun StoreListNavigationItem(
             }
 
             Spacer(
-                modifier = Modifier.height(4.dp),
+                modifier = Modifier.height(2.dp),
             )
 
             Text(
                 text = label,
                 color = if (selected) Color.White else ListBrown,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
             )
         }
     }
