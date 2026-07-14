@@ -183,6 +183,7 @@ fun StoreListScreen(
             ) { store ->
                 StoreListCard(
                     store = store,
+                    activeDiscountLabel = uiState.activeDiscountLabels[store.storeId],
                     currentLocation = currentLocation,
                     onClick = { onStoreDetailClick(store.storeId) },
                     modifier = Modifier.padding(horizontal = 20.dp),
@@ -346,6 +347,7 @@ private fun StoreCategoryTabs(
 @Composable
 private fun StoreListCard(
     store: StoreCardResponse,
+    activeDiscountLabel: String?,
     currentLocation: Location?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -364,7 +366,10 @@ private fun StoreListCard(
         ),
     ) {
         Column {
-            StoreImage(store = store)
+            StoreImage(
+                store = store,
+                activeDiscountLabel = activeDiscountLabel,
+            )
 
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -433,9 +438,9 @@ private fun StoreListCard(
                         ),
                     )
 
-                    if (store.timeSaleActive) {
+                    if (store.timeSaleActive || activeDiscountLabel != null) {
                         StoreListTag(
-                            text = "타임 세일",
+                            text = activeDiscountLabel ?: store.timeSaleTagLabel(),
                         )
                     }
                 }
@@ -447,6 +452,7 @@ private fun StoreListCard(
 @Composable
 private fun StoreImage(
     store: StoreCardResponse,
+    activeDiscountLabel: String?,
 ) {
     val imageUrl = store.imageUrl?.takeIf { it.isNotBlank() }
         ?: storeFallbackImage(store.category)
@@ -483,27 +489,52 @@ private fun StoreImage(
                 ),
         )
 
-        if (store.timeSaleActive) {
+        if (store.timeSaleActive || activeDiscountLabel != null) {
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp),
-                color = ListPrimary.copy(alpha = 0.84f),
-                shape = RoundedCornerShape(18.dp),
+                    .padding(10.dp),
+                color = ListPrimary.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(20.dp),
             ) {
-                Text(
-                    text = store.discountRate?.let { "$it% 할인" } ?: "20% 할인",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                Row(
                     modifier = Modifier.padding(
-                        horizontal = 13.dp,
-                        vertical = 7.dp,
+                        horizontal = 11.dp,
+                        vertical = 6.dp,
                     ),
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_time),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = activeDiscountLabel ?: store.timeSaleBadgeLabel(),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
+}
+
+private fun StoreCardResponse.timeSaleBadgeLabel(): String {
+    return discountRate
+        ?.takeIf { it > 0 }
+        ?.let { "$it% 할인" }
+        ?: "타임 세일 진행 중"
+}
+
+private fun StoreCardResponse.timeSaleTagLabel(): String {
+    return discountRate
+        ?.takeIf { it > 0 }
+        ?.let { "$it% 할인" }
+        ?: "타임 세일"
 }
 
 private fun getLastKnownLocation(context: Context): Location? {
