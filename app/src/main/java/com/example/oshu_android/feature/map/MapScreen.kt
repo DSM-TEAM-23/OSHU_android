@@ -120,6 +120,7 @@ fun MapScreen(
         MapHeader(
             query = uiState.searchQuery,
             onQueryChanged = onSearchQueryChanged,
+            isTimeSaleSelected = uiState.isTimeSaleSelected,
             isHotDealSelected = uiState.isHotDealSelected,
             onTimeSaleClick = onTimeSaleClick,
             onHotDealClick = onHotDealClick,
@@ -175,6 +176,7 @@ fun MapScreen(
 private fun MapHeader(
     query: String,
     onQueryChanged: (String) -> Unit,
+    isTimeSaleSelected: Boolean,
     isHotDealSelected: Boolean,
     onTimeSaleClick: () -> Unit,
     onHotDealClick: () -> Unit,
@@ -245,7 +247,7 @@ private fun MapHeader(
             ) {
                 MapFilterChip(
                     text = "타임 세일",
-                    selected = true,
+                    selected = isTimeSaleSelected,
                     onClick = onTimeSaleClick,
                 )
 
