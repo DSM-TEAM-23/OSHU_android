@@ -4,7 +4,6 @@ import android.content.Context
 import com.example.oshu_android.data.auth.AuthModule
 import com.example.oshu_android.data.auth.LoginRepository
 import com.example.oshu_android.data.auth.LoginRepositoryImpl
-import com.example.oshu_android.data.auth.LoginResponse
 import com.example.oshu_android.data.auth.SessionStore
 import com.example.oshu_android.data.auth.SignUpRepository
 import com.example.oshu_android.feature.onboarding.OnboardingPreferences
@@ -15,14 +14,15 @@ class AppContainer(
     private val applicationContext =
         context.applicationContext
 
-    private val authApi by lazy {
+    private val authApi =
         AuthModule.provideAuthApi(
-            applicationContext
+            applicationContext,
         )
-    }
 
     private val sessionStore: SessionStore =
-        MemorySessionStore()
+        PreferencesSessionStore(
+            context = applicationContext,
+        )
 
     val onboardingPreferences =
         OnboardingPreferences(
@@ -35,20 +35,64 @@ class AppContainer(
             sessionStore = sessionStore,
         )
 
-    val signUpRepository: SignUpRepository =
+    val signUpRepository =
         SignUpRepository(
             authApi = authApi,
         )
 }
 
-private class MemorySessionStore : SessionStore {
-    private var currentSession:
-            LoginResponse? = null
+private class PreferencesSessionStore(
+    context: Context,
+) : SessionStore {
 
-    override suspend fun save(
-        response: LoginResponse,
+    private val preferences =
+        context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        )
+
+    private var sessionAccessToken: String? =
+        preferences.getString(
+            ACCESS_TOKEN_KEY,
+            null,
+        )
+
+    override suspend fun saveAccessToken(
+        accessToken: String,
         persist: Boolean,
     ) {
-        currentSession = response
+        sessionAccessToken = accessToken
+
+        if (persist) {
+            preferences
+                .edit()
+                .putString(
+                    ACCESS_TOKEN_KEY,
+                    accessToken,
+                )
+                .apply()
+        } else {
+            preferences
+                .edit()
+                .remove(ACCESS_TOKEN_KEY)
+                .apply()
+        }
+    }
+
+    override suspend fun clear() {
+        sessionAccessToken = null
+
+        preferences
+            .edit()
+            .remove(ACCESS_TOKEN_KEY)
+            .apply()
+    }
+
+    private companion object {
+        const val PREFERENCES_NAME =
+            "oshu_session"
+
+        const val ACCESS_TOKEN_KEY =
+            "access_token"
     }
 }
