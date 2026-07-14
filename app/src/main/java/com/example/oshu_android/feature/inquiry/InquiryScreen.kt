@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +33,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,6 +84,8 @@ fun InquiryScreen(
     onSubmit: () -> Unit,
     onSuccessConfirm: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+
     if (uiState.submitted) {
         InquiryCompleteDialog(onConfirm = onSuccessConfirm)
     }
@@ -97,6 +107,7 @@ fun InquiryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(
                     horizontal = 20.dp,
@@ -124,6 +135,16 @@ fun InquiryScreen(
                 value = uiState.title,
                 placeholder = "문의제목을 입력하세요",
                 onValueChange = onTitleChanged,
+                enabled = !uiState.isSubmitting,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next,
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
             )
 
             InquiryField(
@@ -131,6 +152,16 @@ fun InquiryScreen(
                 value = uiState.name,
                 placeholder = "문의자 성함을 입력하세요",
                 onValueChange = onNameChanged,
+                enabled = !uiState.isSubmitting,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next,
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
             )
 
             InquiryField(
@@ -138,6 +169,16 @@ fun InquiryScreen(
                 value = uiState.number,
                 placeholder = "전화번호를 입력하세요",
                 onValueChange = onNumberChanged,
+                enabled = !uiState.isSubmitting,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next,
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    },
+                ),
             )
 
             InquiryField(
@@ -146,6 +187,16 @@ fun InquiryScreen(
                 placeholder = "문의 내용을 입력하세요",
                 onValueChange = onContentChanged,
                 minLines = 6,
+                enabled = !uiState.isSubmitting,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    },
+                ),
             )
 
             uiState.errorMessage?.let { message ->
@@ -209,6 +260,9 @@ private fun InquiryField(
     placeholder: String,
     onValueChange: (String) -> Unit,
     minLines: Int = 1,
+    enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
@@ -221,6 +275,7 @@ private fun InquiryField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(if (minLines == 1) 54.dp else 180.dp),
@@ -233,13 +288,23 @@ private fun InquiryField(
             },
             minLines = minLines,
             singleLine = minLines == 1,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            textStyle = TextStyle(
+                color = OshuTextPrimary,
+                fontSize = 15.sp,
+            ),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = OshuPink,
-                unfocusedBorderColor = InquiryBorder,
+                unfocusedBorderColor = OshuPink.copy(alpha = 0.34f),
+                focusedTextColor = OshuTextPrimary,
+                unfocusedTextColor = OshuTextPrimary,
+                disabledTextColor = OshuTextSecondary,
                 cursorColor = OshuPink,
                 focusedContainerColor = Color(0xFFFFFFFF),
                 unfocusedContainerColor = Color(0xFFFFFFFF),
+                disabledContainerColor = Color(0xFFF7F3F4),
             ),
         )
     }
