@@ -1,8 +1,6 @@
 package com.example.oshu_android.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -178,19 +176,15 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.STORE_LIST,
         ) {
-            val mapViewModel: MapViewModel = viewModel(
-                factory = MapViewModel.Factory(
+            val storeListViewModel: StoreListViewModel = viewModel(
+                factory = StoreListViewModel.Factory(
                     storeRepository = appContainer.storeRepository,
                 ),
             )
 
-            val mapUiState by mapViewModel.uiState.collectAsState()
-
-            val storeListViewModel: StoreListViewModel = viewModel()
-
             StoreListRoute(
                 viewModel = storeListViewModel,
-                stores = mapUiState.filteredStores,
+                stores = emptyList(),
                 onMapClick = {
                     navController.navigateToMainScreen(
                         OshuRoutes.HOME,
