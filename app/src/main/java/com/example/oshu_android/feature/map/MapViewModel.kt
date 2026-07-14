@@ -3,6 +3,7 @@ package com.example.oshu_android.feature.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.oshu_android.data.network.ApiResult
 import com.example.oshu_android.data.store.MapStoreResult
 import com.example.oshu_android.data.store.StoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -110,6 +111,34 @@ class MapViewModel(
             it.copy(
                 selectedStoreId = storeId,
             )
+        }
+
+        if (_uiState.value.stores.firstOrNull { it.storeId == storeId }?.imageUrl.isNullOrBlank()) {
+            viewModelScope.launch {
+                when (val result = storeRepository.getStoreDetail(storeId)) {
+                    is ApiResult.Success -> {
+                        val imageUrl = result.data.promotions
+                            .firstOrNull { !it.imageUrl.isNullOrBlank() }
+                            ?.imageUrl
+
+                        if (!imageUrl.isNullOrBlank()) {
+                            _uiState.update { state ->
+                                state.copy(
+                                    stores = state.stores.map { store ->
+                                        if (store.storeId == storeId) {
+                                            store.copy(imageUrl = imageUrl)
+                                        } else {
+                                            store
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    is ApiResult.Failure -> Unit
+                }
+            }
         }
     }
 
