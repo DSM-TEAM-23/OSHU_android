@@ -1,5 +1,7 @@
 package com.example.oshu_android.feature.map
 
+import android.content.Context
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,7 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +45,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +59,7 @@ import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
 import com.example.oshu_android.feature.common.MainBottomNavigation
 import com.example.oshu_android.feature.common.MainDestination
+import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 
 private val MapBackground = Color(0xFFFFF8F9)
@@ -428,7 +435,7 @@ private fun SelectedStoreCard(
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BakeryThumbnail()
+            StoreThumbnail(store)
 
             Spacer(
                 modifier = Modifier.width(14.dp),
@@ -479,28 +486,57 @@ private fun SelectedStoreCard(
 }
 
 @Composable
-private fun BakeryThumbnail() {
-    Box(
+private fun StoreThumbnail(store: StoreCardResponse) {
+    val context = LocalContext.current
+    val fallbackImage = storeFallbackImage(store.category)
+    val serverImageUrl = remember(store.imageUrl) {
+        resolveStoreImageUrl(context, store.imageUrl)
+    }
+    var imageModel by remember(serverImageUrl, fallbackImage) {
+        mutableStateOf(serverImageUrl ?: fallbackImage)
+    }
+
+    AsyncImage(
+        model = imageModel,
+        contentDescription = store.name,
+        contentScale = ContentScale.Crop,
         modifier = Modifier
             .size(72.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFFFE4D6)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFD79563)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_hot_deal),
-                contentDescription = "매장 이미지",
-                tint = Color.White,
-                modifier = Modifier.size(30.dp),
-            )
-        }
+            .clip(RoundedCornerShape(12.dp)),
+        onError = {
+            if (imageModel != fallbackImage) {
+                imageModel = fallbackImage
+            }
+        },
+    )
+}
+
+private fun resolveStoreImageUrl(
+    context: Context,
+    imageUrl: String?,
+): String? {
+    val rawUrl = imageUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    val apiBaseUrl = context.getString(R.string.oshu_api_base_url).trim().trimEnd('/')
+    if (apiBaseUrl.isEmpty()) return rawUrl
+
+    val parsedUrl = runCatching { Uri.parse(rawUrl) }.getOrNull()
+    val isLocalUrl = parsedUrl?.host in setOf("localhost", "127.0.0.1", "10.0.2.2")
+
+    return when {
+        isLocalUrl -> "$apiBaseUrl${parsedUrl?.encodedPath.orEmpty()}"
+        rawUrl.startsWith("http://") || rawUrl.startsWith("https://") -> rawUrl
+        rawUrl.startsWith('/') -> "$apiBaseUrl$rawUrl"
+        else -> "$apiBaseUrl/$rawUrl"
+    }
+}
+
+private fun storeFallbackImage(category: String): String {
+    return when (category.trim().lowercase()) {
+        "카페", "cafe", "coffee" -> "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80"
+        "베이커리", "bakery" -> "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80"
+        "음식점", "식당", "restaurant", "food" -> "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=800&q=80"
+        "마트", "식료품", "mart", "grocery" -> "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=800&q=80"
+        else -> "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
     }
 }
 
