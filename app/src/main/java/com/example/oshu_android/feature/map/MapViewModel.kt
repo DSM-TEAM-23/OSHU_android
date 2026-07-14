@@ -107,6 +107,17 @@ class MapViewModel(
         }
     }
 
+    fun onMapError(
+        message: String,
+    ) {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = message,
+            )
+        }
+    }
+
     fun clearError() {
         _uiState.update {
             it.copy(
@@ -119,10 +130,6 @@ class MapViewModel(
         latitude: Double,
         longitude: Double,
     ) {
-        if (_uiState.value.isLoading) {
-            return
-        }
-
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
