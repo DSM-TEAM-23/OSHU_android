@@ -1,10 +1,9 @@
 package com.example.oshu_android.feature.map
 
-import androidx.compose.foundation.BasicTooltipBox
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
 import com.example.oshu_android.data.store.StoreModule
 
@@ -74,8 +76,10 @@ fun MapScreen() {
         uiState = uiState,
         onSearchQueryChange =
             mapViewModel::onSearchQueryChange,
-        onSearch = mapViewModel::refresh,
-        onRefresh = mapViewModel::refresh,
+        onSearch =
+            mapViewModel::refresh,
+        onRefresh =
+            mapViewModel::refresh,
         onTimeSaleFilterClick =
             mapViewModel::onTimeSaleFilterClick,
         onHotPlaceFilterClick =
@@ -84,9 +88,10 @@ fun MapScreen() {
             mapViewModel::onStoreClick,
         onMapClick =
             mapViewModel::onMapClick,
-        onMapError = {
-            mapViewModel.clearError()
-        },
+        onMapError =
+            mapViewModel::onMapError,
+        onDismissError =
+            mapViewModel::clearError,
     )
 }
 
@@ -101,18 +106,17 @@ private fun MapScreenContent(
     onStoreClick: (Long) -> Unit,
     onMapClick: () -> Unit,
     onMapError: (String) -> Unit,
+    onDismissError: () -> Unit,
 ) {
-    val primary =
-        MaterialTheme.colorScheme.primary
-
-    val background =
-        MaterialTheme.colorScheme.background
-
     Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(background),
+                .background(
+                    MaterialTheme
+                        .colorScheme
+                        .background
+                ),
     ) {
         KakaoMapView(
             stores =
@@ -192,12 +196,13 @@ private fun MapScreenContent(
                         Alignment.Center,
                 ) {
                     CircularProgressIndicator(
-                        color = primary,
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .primary,
                         strokeWidth = 3.dp,
                         modifier =
-                            Modifier.size(
-                                30.dp
-                            ),
+                            Modifier.size(30.dp),
                     )
                 }
             }
@@ -205,14 +210,13 @@ private fun MapScreenContent(
 
         uiState.errorMessage?.let {
             Surface(
+                onClick = onDismissError,
                 color =
                     MaterialTheme
                         .colorScheme
                         .errorContainer,
                 shape =
-                    RoundedCornerShape(
-                        10.dp
-                    ),
+                    RoundedCornerShape(10.dp),
                 shadowElevation = 4.dp,
                 modifier =
                     Modifier
@@ -274,55 +278,26 @@ private fun MapTopPanel(
                 Modifier
                     .statusBarsPadding()
                     .padding(
-                        start = 20.dp,
-                        end = 20.dp,
-                        top = 14.dp,
+                        start = 22.dp,
+                        end = 22.dp,
+                        top = 18.dp,
                         bottom = 18.dp,
                     ),
         ) {
-            Row(
-                verticalAlignment =
-                    Alignment.CenterVertically,
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-                modifier =
-                    Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "≡",
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .primary,
-                    fontSize = 34.sp,
-                    fontWeight =
-                        FontWeight.Light,
-                )
-
-                Text(
-                    text = "OSHU",
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .primary,
-                    fontSize = 26.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                )
-
-                Text(
-                    text = "☷",
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .primary,
-                    fontSize = 28.sp,
-                )
-            }
+            Text(
+                text = "OSHU",
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .primary,
+                fontSize = 26.sp,
+                fontWeight =
+                    FontWeight.Bold,
+            )
 
             Spacer(
                 modifier =
-                    Modifier.height(20.dp),
+                    Modifier.height(28.dp),
             )
 
             MapSearchBar(
@@ -335,38 +310,40 @@ private fun MapTopPanel(
 
             Spacer(
                 modifier =
-                    Modifier.height(18.dp),
+                    Modifier.height(20.dp),
             )
 
             Row(
                 horizontalArrangement =
-                    Arrangement.spacedBy(
-                        10.dp
-                    ),
+                    Arrangement.spacedBy(10.dp),
                 modifier =
                     Modifier.fillMaxWidth(),
             ) {
                 MapFilterChip(
                     text = "타임 세일",
-                    symbol = "",
+                    iconResource = null,
                     selected =
                         timeSaleSelected,
+                    enabled = true,
                     onClick =
                         onTimeSaleClick,
                 )
 
                 MapFilterChip(
                     text = "핫딜",
-                    symbol = "♨",
+                    iconResource =
+                        R.drawable.ic_hot_deal,
                     selected =
                         hotPlaceSelected,
+                    enabled = true,
                     onClick =
                         onHotPlaceClick,
                 )
 
                 MapFilterChip(
                     text = "예약 가능",
-                    symbol = "▰",
+                    iconResource =
+                        R.drawable.ic_reservation,
                     selected = false,
                     enabled = false,
                     onClick = {},
@@ -385,15 +362,13 @@ private fun MapSearchBar(
 ) {
     Surface(
         shape =
-            RoundedCornerShape(
-                28.dp
-            ),
+            RoundedCornerShape(28.dp),
         color =
             MaterialTheme
                 .colorScheme
                 .surface,
         border =
-            androidx.compose.foundation.BorderStroke(
+            BorderStroke(
                 width = 1.dp,
                 color =
                     MaterialTheme
@@ -415,18 +390,23 @@ private fun MapSearchBar(
                     horizontal = 16.dp,
                 ),
         ) {
-            Text(
-                text = "⌕",
-                color =
+            Icon(
+                painter =
+                    painterResource(
+                        R.drawable.ic_search
+                    ),
+                contentDescription = "검색",
+                tint =
                     MaterialTheme
                         .colorScheme
                         .primary,
-                fontSize = 30.sp,
+                modifier =
+                    Modifier.size(25.dp),
             )
 
             Spacer(
                 modifier =
-                    Modifier.width(10.dp),
+                    Modifier.width(12.dp),
             )
 
             BasicTextField(
@@ -475,17 +455,24 @@ private fun MapSearchBar(
                     Modifier.weight(1f),
             )
 
-            Text(
-                text = "◎",
-                color =
+            Icon(
+                painter =
+                    painterResource(
+                        R.drawable
+                            .ic_my_location
+                    ),
+                contentDescription =
+                    "내 위치에서 새로고침",
+                tint =
                     MaterialTheme
                         .colorScheme
                         .primary,
-                fontSize = 29.sp,
                 modifier =
-                    Modifier.clickable {
-                        onRefresh()
-                    },
+                    Modifier
+                        .size(27.dp)
+                        .clickable {
+                            onRefresh()
+                        },
             )
         }
     }
@@ -494,15 +481,35 @@ private fun MapSearchBar(
 @Composable
 private fun MapFilterChip(
     text: String,
-    symbol: String,
+    @DrawableRes
+    iconResource: Int?,
     selected: Boolean,
-    enabled: Boolean = true,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     val primary =
         MaterialTheme
             .colorScheme
             .primary
+
+    val contentColor =
+        when {
+            selected ->
+                MaterialTheme
+                    .colorScheme
+                    .onPrimary
+
+            enabled ->
+                MaterialTheme
+                    .colorScheme
+                    .onSurface
+
+            else ->
+                MaterialTheme
+                    .colorScheme
+                    .onSurface
+                    .copy(alpha = 0.45f)
+        }
 
     Surface(
         onClick = onClick,
@@ -515,33 +522,14 @@ private fun MapFilterChip(
                     .colorScheme
                     .surface
             },
-        contentColor =
-            if (selected) {
-                MaterialTheme
-                    .colorScheme
-                    .onPrimary
-            } else {
-                MaterialTheme
-                    .colorScheme
-                    .onSurface
-                    .copy(
-                        alpha =
-                            if (enabled) {
-                                1f
-                            } else {
-                                0.45f
-                            }
-                    )
-            },
+        contentColor = contentColor,
         shape =
-            RoundedCornerShape(
-                24.dp
-            ),
+            RoundedCornerShape(24.dp),
         border =
             if (selected) {
                 null
             } else {
-                androidx.compose.foundation.BorderStroke(
+                BorderStroke(
                     width = 1.dp,
                     color =
                         primary.copy(
@@ -562,23 +550,33 @@ private fun MapFilterChip(
                     vertical = 11.dp,
                 ),
         ) {
-            if (symbol.isNotBlank()) {
-                Text(
-                    text = symbol,
-                    color =
-                        if (selected) {
-                            MaterialTheme
-                                .colorScheme
-                                .onPrimary
-                        } else {
-                            primary
+            if (iconResource != null) {
+                Icon(
+                    painter =
+                        painterResource(
+                            iconResource
+                        ),
+                    contentDescription = null,
+                    tint =
+                        when {
+                            selected ->
+                                MaterialTheme
+                                    .colorScheme
+                                    .onPrimary
+
+                            enabled ->
+                                primary
+
+                            else ->
+                                contentColor
                         },
-                    fontSize = 17.sp,
+                    modifier =
+                        Modifier.size(18.dp),
                 )
 
                 Spacer(
                     modifier =
-                        Modifier.width(5.dp),
+                        Modifier.width(6.dp),
                 )
             }
 
@@ -603,9 +601,7 @@ private fun SelectedStoreCard(
 ) {
     Surface(
         shape =
-            RoundedCornerShape(
-                14.dp
-            ),
+            RoundedCornerShape(14.dp),
         color =
             MaterialTheme
                 .colorScheme
@@ -626,9 +622,7 @@ private fun SelectedStoreCard(
                         .colorScheme
                         .primaryContainer,
                 shape =
-                    RoundedCornerShape(
-                        10.dp
-                    ),
+                    RoundedCornerShape(10.dp),
                 modifier =
                     Modifier.size(72.dp),
             ) {
@@ -636,15 +630,17 @@ private fun SelectedStoreCard(
                     contentAlignment =
                         Alignment.Center,
                 ) {
-                    Text(
-                        text = "OSHU",
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .primary,
-                        fontSize = 13.sp,
-                        fontWeight =
-                            FontWeight.Bold,
+                    Icon(
+                        painter =
+                            painterResource(
+                                markerForCard(
+                                    store.category
+                                )
+                            ),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier =
+                            Modifier.size(42.dp),
                     )
                 }
             }
@@ -697,9 +693,7 @@ private fun SelectedStoreCard(
 
                 Row(
                     horizontalArrangement =
-                        Arrangement.spacedBy(
-                            7.dp
-                        ),
+                        Arrangement.spacedBy(7.dp),
                 ) {
                     if (
                         store.crowdLevel != null
@@ -707,23 +701,18 @@ private fun SelectedStoreCard(
                         StoreBadge(
                             text =
                                 crowdLabel(
-                                    store
-                                        .crowdLevel
+                                    store.crowdLevel
                                 ),
                         )
                     }
 
-                    if (
-                        store.timeSaleActive
-                    ) {
+                    if (store.timeSaleActive) {
                         StoreBadge(
                             text = "타임세일",
                         )
                     }
 
-                    if (
-                        store.externalData
-                    ) {
+                    if (store.externalData) {
                         StoreBadge(
                             text = "공공데이터",
                         )
@@ -744,9 +733,7 @@ private fun StoreBadge(
                 .colorScheme
                 .primaryContainer,
         shape =
-            RoundedCornerShape(
-                6.dp
-            ),
+            RoundedCornerShape(6.dp),
     ) {
         Text(
             text = text,
@@ -830,16 +817,12 @@ private fun MapBottomItem(
     Surface(
         color =
             if (selected) {
-                primary.copy(
-                    alpha = 0.18f
-                )
+                primary.copy(alpha = 0.18f)
             } else {
                 Color.Transparent
             },
         shape =
-            RoundedCornerShape(
-                14.dp
-            ),
+            RoundedCornerShape(14.dp),
     ) {
         Column(
             horizontalAlignment =
@@ -860,9 +843,7 @@ private fun MapBottomItem(
                             MaterialTheme
                                 .colorScheme
                                 .onSurface
-                                .copy(
-                                    alpha = 0.65f
-                                )
+                                .copy(alpha = 0.65f)
                         },
                     fontSize = 25.sp,
                 )
@@ -877,8 +858,7 @@ private fun MapBottomItem(
                                 .size(7.dp)
                                 .background(
                                     color = primary,
-                                    shape =
-                                        CircleShape,
+                                    shape = CircleShape,
                                 ),
                     )
                 }
@@ -893,13 +873,53 @@ private fun MapBottomItem(
                         MaterialTheme
                             .colorScheme
                             .onSurface
-                            .copy(
-                                alpha = 0.65f
-                            )
+                            .copy(alpha = 0.65f)
                     },
                 fontSize = 12.sp,
             )
         }
+    }
+}
+
+@DrawableRes
+private fun markerForCard(
+    category: String,
+): Int {
+    return when (
+        category
+            .trim()
+            .replace(" ", "")
+            .lowercase()
+    ) {
+        "베이커리",
+        "bakery" ->
+            R.drawable.ic_marker_bakery
+
+        "음식점",
+        "식당",
+        "restaurant",
+        "food" ->
+            R.drawable.ic_marker_food_market
+
+        "카페",
+        "cafe",
+        "coffee" ->
+            R.drawable.ic_marker_cafe
+
+        "마트",
+        "mart" ->
+            R.drawable.ic_marker_mart
+
+        "시장·식료품",
+        "시장/식료품",
+        "시장식료품",
+        "식료품",
+        "marketplace",
+        "market" ->
+            R.drawable.ic_marker_marketplace
+
+        else ->
+            R.drawable.ic_marker_marketplace
     }
 }
 
