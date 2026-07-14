@@ -10,7 +10,8 @@ import com.example.oshu_android.feature.auth.login.LoginRoute
 import com.example.oshu_android.feature.auth.login.LoginViewModel
 import com.example.oshu_android.feature.auth.signup.SignUpRoute
 import com.example.oshu_android.feature.auth.signup.SignUpViewModel
-import com.example.oshu_android.feature.map.MapScreen
+import com.example.oshu_android.feature.map.MapRoute
+import com.example.oshu_android.feature.map.MapViewModel
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
 
@@ -18,11 +19,13 @@ import com.example.oshu_android.feature.onboarding.SplashScreen
 fun OshuNavGraph(
     appContainer: AppContainer,
 ) {
-    val navController = rememberNavController()
+    val navController =
+        rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = OshuRoutes.SPLASH,
+        startDestination =
+            OshuRoutes.SPLASH,
     ) {
         composable(
             route = OshuRoutes.SPLASH,
@@ -33,10 +36,10 @@ fun OshuNavGraph(
                         .onboardingPreferences,
                 onOnboardingRequired = {
                     navController.navigate(
-                        OshuRoutes.ONBOARDING
+                        OshuRoutes.ONBOARDING,
                     ) {
                         popUpTo(
-                            OshuRoutes.SPLASH
+                            OshuRoutes.SPLASH,
                         ) {
                             inclusive = true
                         }
@@ -46,10 +49,10 @@ fun OshuNavGraph(
                 },
                 onLoginRequired = {
                     navController.navigate(
-                        OshuRoutes.LOGIN
+                        OshuRoutes.LOGIN,
                     ) {
                         popUpTo(
-                            OshuRoutes.SPLASH
+                            OshuRoutes.SPLASH,
                         ) {
                             inclusive = true
                         }
@@ -69,10 +72,10 @@ fun OshuNavGraph(
                         .onboardingPreferences,
                 onFinished = {
                     navController.navigate(
-                        OshuRoutes.LOGIN
+                        OshuRoutes.LOGIN,
                     ) {
                         popUpTo(
-                            OshuRoutes.ONBOARDING
+                            OshuRoutes.ONBOARDING,
                         ) {
                             inclusive = true
                         }
@@ -101,10 +104,10 @@ fun OshuNavGraph(
                 viewModel = loginViewModel,
                 onLoginSuccess = {
                     navController.navigate(
-                        OshuRoutes.HOME
+                        OshuRoutes.HOME,
                     ) {
                         popUpTo(
-                            OshuRoutes.LOGIN
+                            OshuRoutes.LOGIN,
                         ) {
                             inclusive = true
                         }
@@ -114,7 +117,7 @@ fun OshuNavGraph(
                 },
                 onSignUpClick = {
                     navController.navigate(
-                        OshuRoutes.SIGN_UP
+                        OshuRoutes.SIGN_UP,
                     ) {
                         launchSingleTop = true
                     }
@@ -143,10 +146,10 @@ fun OshuNavGraph(
                 },
                 onSignUpSuccess = {
                     navController.navigate(
-                        OshuRoutes.LOGIN
+                        OshuRoutes.LOGIN,
                     ) {
                         popUpTo(
-                            OshuRoutes.LOGIN
+                            OshuRoutes.SIGN_UP,
                         ) {
                             inclusive = true
                         }
@@ -160,7 +163,20 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.HOME,
         ) {
-            MapScreen()
+            val mapViewModel:
+                    MapViewModel =
+                viewModel(
+                    factory =
+                        MapViewModel.Factory(
+                            storeRepository =
+                                appContainer
+                                    .storeRepository,
+                        ),
+                )
+
+            MapRoute(
+                viewModel = mapViewModel,
+            )
         }
     }
 }

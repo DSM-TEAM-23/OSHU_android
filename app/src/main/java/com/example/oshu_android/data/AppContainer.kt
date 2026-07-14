@@ -6,6 +6,7 @@ import com.example.oshu_android.data.auth.LoginRepository
 import com.example.oshu_android.data.auth.LoginRepositoryImpl
 import com.example.oshu_android.data.auth.SessionStore
 import com.example.oshu_android.data.auth.SignUpRepository
+import com.example.oshu_android.data.store.StoreModule
 import com.example.oshu_android.feature.onboarding.OnboardingPreferences
 
 class AppContainer(
@@ -38,6 +39,11 @@ class AppContainer(
     val signUpRepository =
         SignUpRepository(
             authApi = authApi,
+        )
+
+    val storeRepository =
+        StoreModule.provideStoreRepository(
+            applicationContext,
         )
 }
 
