@@ -1,13 +1,13 @@
 package com.example.oshu_android.feature.map
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +66,6 @@ fun MapRoute(
     viewModel: MapViewModel,
     onListClick: () -> Unit = {},
     onPromotionClick: () -> Unit = {},
-    onMyPageClick: () -> Unit = {},
 ) {
     val uiState by
     viewModel.uiState.collectAsState()
@@ -91,7 +92,6 @@ fun MapRoute(
             viewModel::onErrorMessageShown,
         onListClick = onListClick,
         onPromotionClick = onPromotionClick,
-        onMyPageClick = onMyPageClick,
     )
 }
 
@@ -109,7 +109,6 @@ fun MapScreen(
     onErrorMessageShown: () -> Unit,
     onListClick: () -> Unit,
     onPromotionClick: () -> Unit,
-    onMyPageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -123,8 +122,6 @@ fun MapScreen(
                 onListClick = onListClick,
                 onPromotionClick =
                     onPromotionClick,
-                onMyPageClick =
-                    onMyPageClick,
             )
         },
     ) { paddingValues ->
@@ -348,7 +345,7 @@ private fun MapSearchField(
                 modifier = Modifier.size(27.dp),
             )
 
-            androidx.compose.foundation.text.BasicTextField(
+            BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
                 modifier = Modifier
@@ -362,15 +359,17 @@ private fun MapSearchField(
                             fontSize = 17.sp,
                         ),
                 decorationBox = { innerTextField ->
-                    if (value.isBlank()) {
-                        Text(
-                            text = "지역 혜택 검색...",
-                            color = MapHint,
-                            fontSize = 17.sp,
-                        )
-                    }
+                    Box {
+                        if (value.isBlank()) {
+                            Text(
+                                text = "지역 혜택 검색...",
+                                color = MapHint,
+                                fontSize = 17.sp,
+                            )
+                        }
 
-                    innerTextField()
+                        innerTextField()
+                    }
                 },
             )
 
@@ -408,7 +407,7 @@ private fun MapFilterChip(
             if (selected) {
                 null
             } else {
-                androidx.compose.foundation.BorderStroke(
+                BorderStroke(
                     width = 1.dp,
                     color = MapBorder,
                 )
@@ -432,15 +431,13 @@ private fun MapFilterChip(
                     tint =
                         if (selected) {
                             Color.White
+                        } else if (
+                            icon ==
+                            R.drawable.ic_hot_deal
+                        ) {
+                            MapPrimary
                         } else {
-                            if (
-                                icon ==
-                                R.drawable.ic_hot_deal
-                            ) {
-                                MapPrimary
-                            } else {
-                                MapBrown
-                            }
+                            MapBrown
                         },
                     modifier =
                         Modifier.size(20.dp),
@@ -474,12 +471,10 @@ private fun SelectedStoreCard(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable {},
+        modifier = modifier.fillMaxWidth(),
         color = Color.White,
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             width = 1.dp,
             color = MapBorder,
         ),
@@ -498,7 +493,8 @@ private fun SelectedStoreCard(
                         shape =
                             RoundedCornerShape(10.dp),
                     ),
-                contentAlignment = Alignment.Center,
+                contentAlignment =
+                    Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(
@@ -604,7 +600,6 @@ private enum class MapBottomDestination {
     MAP,
     LIST,
     PROMOTION,
-    MY_PAGE,
 }
 
 @Composable
@@ -613,7 +608,6 @@ private fun MapBottomBar(
     onMapClick: () -> Unit,
     onListClick: () -> Unit,
     onPromotionClick: () -> Unit,
-    onMyPageClick: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -625,7 +619,7 @@ private fun MapBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = 54.dp),
             horizontalArrangement =
                 Arrangement.SpaceBetween,
             verticalAlignment =
@@ -667,18 +661,6 @@ private fun MapBottomBar(
                 showBadge = true,
                 onClick = onPromotionClick,
             )
-
-            BottomNavigationItem(
-                label = "마이페이지",
-                selected =
-                    selectedItem ==
-                            MapBottomDestination.MY_PAGE,
-                selectedIcon =
-                    R.drawable.ic_mypage_fill,
-                unselectedIcon =
-                    R.drawable.ic_mypage,
-                onClick = onMyPageClick,
-            )
         }
     }
 }
@@ -694,7 +676,7 @@ private fun BottomNavigationItem(
 ) {
     Box(
         modifier = Modifier
-            .width(72.dp)
+            .width(76.dp)
             .height(72.dp)
             .background(
                 color =
@@ -735,7 +717,10 @@ private fun BottomNavigationItem(
                         Modifier.size(27.dp),
                 )
 
-                if (showBadge) {
+                if (
+                    showBadge &&
+                    !selected
+                ) {
                     Box(
                         modifier = Modifier
                             .align(
