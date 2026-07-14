@@ -1,13 +1,8 @@
 package com.example.oshu_android.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -22,10 +17,10 @@ import com.example.oshu_android.feature.map.MapRoute
 import com.example.oshu_android.feature.map.MapViewModel
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
+import com.example.oshu_android.feature.promotion.PromotionRoute
 import com.example.oshu_android.feature.promotion.PromotionViewModel
 import com.example.oshu_android.feature.storelist.StoreListRoute
 import com.example.oshu_android.feature.storelist.StoreListViewModel
-import com.example.oshu_android.feature.promotion.PromotionRoute
 
 @Composable
 fun OshuNavGraph(
@@ -207,9 +202,6 @@ fun OshuNavGraph(
                     )
                 },
                 onStoreDetailClick = {
-                    navController.navigate(
-                        "store_detail/$it",
-                    )
                 },
             )
         }
@@ -217,7 +209,11 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.PROMOTION,
         ) {
-            val promotionViewModel: PromotionViewModel = viewModel()
+            val promotionViewModel: PromotionViewModel = viewModel(
+                factory = PromotionViewModel.Factory(
+                    storeRepository = appContainer.storeRepository,
+                ),
+            )
 
             PromotionRoute(
                 viewModel = promotionViewModel,
@@ -235,18 +231,6 @@ fun OshuNavGraph(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun PromotionPlaceholderScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = "프로모션 준비 중",
-        )
     }
 }
 
