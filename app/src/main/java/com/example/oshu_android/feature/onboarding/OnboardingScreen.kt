@@ -93,14 +93,14 @@ fun OnboardingScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(58.dp),
         ) {
             Text(
                 text = "OSHU",
                 modifier = Modifier.align(Alignment.Center),
                 color = colorScheme.primary,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
             )
 
             Text(

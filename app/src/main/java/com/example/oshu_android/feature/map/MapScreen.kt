@@ -199,23 +199,24 @@ private fun MapHeader(
                 .padding(
                     start = 24.dp,
                     end = 24.dp,
-                    top = 24.dp,
                     bottom = 22.dp,
                 ),
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "OSHU",
                     color = MapPrimary,
-                    fontSize = 26.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
             Spacer(
-                modifier = Modifier.height(28.dp),
+                modifier = Modifier.height(14.dp),
             )
 
             MapSearchField(

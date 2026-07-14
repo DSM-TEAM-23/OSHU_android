@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -136,28 +137,38 @@ fun StoreDetailScreen(
 
 @Composable
 private fun StoreDetailTopBar(onBackClick: () -> Unit) {
-    Surface(color = Color(0xFFFFF2F5)) {
-        Row(
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        color = Color(0xFFFFF2F5),
+    ) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(58.dp)
                 .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.CenterStart),
+            ) {
                 Text("←", color = OshuTextPrimary, fontSize = 28.sp)
             }
 
             Text(
                 text = "OSHU",
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.align(Alignment.Center),
                 color = OshuPink,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
 
-            IconButton(onClick = {}) {
+            IconButton(
+                onClick = {},
+                modifier = Modifier.align(Alignment.CenterEnd),
+            ) {
                 Text("↗", color = OshuTextPrimary, fontSize = 24.sp)
             }
         }

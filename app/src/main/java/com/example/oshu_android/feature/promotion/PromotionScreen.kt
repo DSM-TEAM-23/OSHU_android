@@ -240,16 +240,13 @@ private fun PromotionHeader() {
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(
-                top = 12.dp,
-                bottom = 4.dp,
-            ),
-        contentAlignment = Alignment.CenterStart,
+            .height(58.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "OSHU",
             color = OshuPink,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
         )
     }

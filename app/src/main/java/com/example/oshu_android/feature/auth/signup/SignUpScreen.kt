@@ -138,17 +138,14 @@ fun SignUpScreen(
                     horizontal = 24.dp,
                 ),
         ) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-                verticalAlignment =
-                    Alignment.CenterVertically,
+                    .height(58.dp),
             ) {
                 Box(
                     modifier = Modifier
+                        .align(Alignment.CenterStart)
                         .size(38.dp)
                         .clickable(
                             enabled = !uiState.isLoading,
@@ -167,8 +164,9 @@ fun SignUpScreen(
 
                 Text(
                     text = "OSHU",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     color = colorScheme.primary,
                 )
             }
