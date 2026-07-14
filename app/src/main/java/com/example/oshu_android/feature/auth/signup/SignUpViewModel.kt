@@ -42,23 +42,31 @@ class SignUpViewModel(
         password: String,
     ) {
         _uiState.update {
-            val confirmError =
-                if (
-                    it.passwordConfirm
-                        .isNotEmpty() &&
+            val passwordError =
+                passwordValidationMessage(
+                    password = password,
+                    showEmptyError = false,
+                )
+
+            val passwordConfirmError =
+                when {
+                    it.passwordConfirm.isEmpty() -> {
+                        null
+                    }
+
                     password !=
-                    it.passwordConfirm
-                ) {
-                    "비밀번호가 일치하지 않습니다."
-                } else {
-                    null
+                            it.passwordConfirm -> {
+                        "비밀번호가 일치하지 않습니다."
+                    }
+
+                    else -> null
                 }
 
             it.copy(
                 password = password,
-                passwordError = null,
+                passwordError = passwordError,
                 passwordConfirmError =
-                    confirmError,
+                    passwordConfirmError,
                 generalError = null,
             )
         }
@@ -68,22 +76,25 @@ class SignUpViewModel(
         passwordConfirm: String,
     ) {
         _uiState.update {
-            val confirmError =
-                if (
-                    passwordConfirm.isNotEmpty() &&
+            val passwordConfirmError =
+                when {
+                    passwordConfirm.isEmpty() -> {
+                        null
+                    }
+
                     passwordConfirm !=
-                    it.password
-                ) {
-                    "비밀번호가 일치하지 않습니다."
-                } else {
-                    null
+                            it.password -> {
+                        "비밀번호가 일치하지 않습니다."
+                    }
+
+                    else -> null
                 }
 
             it.copy(
                 passwordConfirm =
                     passwordConfirm,
                 passwordConfirmError =
-                    confirmError,
+                    passwordConfirmError,
                 generalError = null,
             )
         }
@@ -200,24 +211,27 @@ class SignUpViewModel(
             }
 
         val passwordError =
-            if (
-                !isValidPassword(
-                    currentState.password
-                )
-            ) {
-                "영문, 숫자, 특수문자를 포함하여 8자 이상 입력해주세요."
-            } else {
-                null
-            }
+            passwordValidationMessage(
+                password =
+                    currentState.password,
+                showEmptyError = true,
+            )
 
         val passwordConfirmError =
-            if (
+            when {
+                currentState
+                    .passwordConfirm
+                    .isEmpty() -> {
+                    "비밀번호 확인을 입력해주세요."
+                }
+
                 currentState.password !=
-                currentState.passwordConfirm
-            ) {
-                "비밀번호가 일치하지 않습니다."
-            } else {
-                null
+                        currentState
+                            .passwordConfirm -> {
+                    "비밀번호가 일치하지 않습니다."
+                }
+
+                else -> null
             }
 
         val termsError =
