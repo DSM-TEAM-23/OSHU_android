@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -49,17 +47,23 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
 ) {
     val pages = onboardingPages
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { pages.size },
-    )
-    val coroutineScope = rememberCoroutineScope()
-    val colorScheme = MaterialTheme.colorScheme
-    val isLastPage = pagerState.currentPage == pages.lastIndex
+
+    if (pages.isEmpty()) {
+        return
+    }
+
+    var currentPageIndex by rememberSaveable {
+        mutableStateOf(0)
+    }
 
     var isCompleting by rememberSaveable {
         mutableStateOf(false)
     }
+
+    val coroutineScope = rememberCoroutineScope()
+    val colorScheme = MaterialTheme.colorScheme
+    val currentPage = pages[currentPageIndex]
+    val isLastPage = currentPageIndex == pages.lastIndex
 
     fun completeOnboarding() {
         if (isCompleting) {
@@ -69,8 +73,11 @@ fun OnboardingScreen(
         isCompleting = true
 
         coroutineScope.launch {
-            onboardingPreferences.setCompleted()
-            onFinished()
+            try {
+                onboardingPreferences.setCompleted()
+            } finally {
+                onFinished()
+            }
         }
     }
 
@@ -111,83 +118,67 @@ fun OnboardingScreen(
             )
         }
 
-        HorizontalPager(
-            state = pagerState,
+        Spacer(
+            modifier = Modifier.weight(0.18f),
+        )
+
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            pageSpacing = 20.dp,
-            userScrollEnabled = !isCompleting,
-        ) { pageIndex ->
-            val page = pages[pageIndex]
-
-            Column(
+                .fillMaxWidth(0.9f)
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(20.dp))
+                .background(colorScheme.surface)
+                .border(
+                    width = 1.dp,
+                    color = colorScheme.outline.copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(20.dp),
+                )
+                .padding(12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(currentPage.imageRes),
+                contentDescription = currentPage.imageDescription,
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(
-                    modifier = Modifier.weight(0.22f),
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(colorScheme.surface)
-                        .border(
-                            width = 1.dp,
-                            color = colorScheme.outline.copy(alpha = 0.35f),
-                            shape = RoundedCornerShape(20.dp),
-                        )
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Image(
-                        painter = painterResource(page.imageRes),
-                        contentDescription = page.imageDescription,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit,
-                    )
-                }
-
-                Spacer(
-                    modifier = Modifier.weight(0.28f),
-                )
-
-                Text(
-                    text = page.title,
-                    color = colorScheme.onBackground,
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 29.sp,
-                )
-
-                Spacer(
-                    modifier = Modifier.height(14.dp),
-                )
-
-                Text(
-                    text = page.description,
-                    color = colorScheme.onSurfaceVariant,
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 21.sp,
-                )
-
-                Spacer(
-                    modifier = Modifier.weight(0.22f),
-                )
-            }
+                contentScale = ContentScale.Fit,
+            )
         }
+
+        Spacer(
+            modifier = Modifier.weight(0.24f),
+        )
+
+        Text(
+            text = currentPage.title,
+            color = colorScheme.onBackground,
+            fontSize = 23.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            lineHeight = 29.sp,
+        )
+
+        Spacer(
+            modifier = Modifier.height(14.dp),
+        )
+
+        Text(
+            text = currentPage.description,
+            color = colorScheme.onSurfaceVariant,
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 21.sp,
+        )
+
+        Spacer(
+            modifier = Modifier.weight(0.22f),
+        )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             pages.indices.forEach { index ->
-                val selected = pagerState.currentPage == index
+                val selected = index == currentPageIndex
 
                 Box(
                     modifier = Modifier
@@ -222,7 +213,7 @@ fun OnboardingScreen(
         )
 
         Text(
-            text = "${pagerState.currentPage + 1} / ${pages.size}",
+            text = "${currentPageIndex + 1} / ${pages.size}",
             color = colorScheme.onSurfaceVariant,
             fontSize = 13.sp,
         )
@@ -236,11 +227,7 @@ fun OnboardingScreen(
                 if (isLastPage) {
                     completeOnboarding()
                 } else {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(
-                            page = pagerState.currentPage + 1,
-                        )
-                    }
+                    currentPageIndex += 1
                 }
             },
             modifier = Modifier
