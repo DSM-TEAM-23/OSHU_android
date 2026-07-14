@@ -17,42 +17,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.oshu_android.R
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(
-    onboardingPreferences:
-    OnboardingPreferences,
+    onboardingPreferences: OnboardingPreferences,
     onOnboardingRequired: () -> Unit,
     onLoginRequired: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
-        val isCompleted =
-            onboardingPreferences
-                .isCompleted
-                .first()
+        onboardingPreferences.reset()
 
         delay(1200)
 
-        if (isCompleted) {
-            onLoginRequired()
-        } else {
-            onOnboardingRequired()
-        }
+        onOnboardingRequired()
     }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
-                MaterialTheme.colorScheme.background
+                MaterialTheme.colorScheme.background,
             ),
         contentAlignment = Alignment.Center,
     ) {
         Image(
             painter = painterResource(
-                R.drawable.img_logo_oshu
+                R.drawable.img_logo_oshu,
             ),
             contentDescription = "OSHU",
             modifier = Modifier
