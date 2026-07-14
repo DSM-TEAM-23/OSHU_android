@@ -8,7 +8,6 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-/** JWT가 필요한 점주 가게·타임세일·홍보 API. */
 interface OwnerStoreApi {
 
     @GET("owner/stores")

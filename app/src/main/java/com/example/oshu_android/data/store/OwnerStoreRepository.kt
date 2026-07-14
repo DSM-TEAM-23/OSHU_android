@@ -4,7 +4,6 @@ import com.example.oshu_android.data.network.ApiResult
 import com.example.oshu_android.data.network.executeApiCall
 import com.example.oshu_android.data.network.executeUnitApiCall
 
-/** 점주 화면에서 사용하는 가게, 혼잡도, 타임세일, 홍보 API 진입점입니다. */
 class OwnerStoreRepository(
     private val ownerStoreApi: OwnerStoreApi,
 ) {
