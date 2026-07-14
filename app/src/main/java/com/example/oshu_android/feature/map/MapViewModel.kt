@@ -53,10 +53,7 @@ class MapViewModel(
                     _uiState.update {
                         it.copy(
                             stores = result.stores,
-                            selectedStoreId =
-                                result.stores
-                                    .firstOrNull()
-                                    ?.storeId,
+                            selectedStoreId = null,
                             isLoading = false,
                             errorMessage = null,
                         )
