@@ -17,17 +17,18 @@ data class PageResponse<T>(
     val page: Int = 0,
     val size: Int = 0,
     val totalElements: Long = 0L,
+    val totalPages: Int = 0,
 )
 
 data class PromotionResponse(
     val promotionId: Long = 0L,
     val storeId: Long = 0L,
-    val storeName: String? = null,
-    val type: String? = null,
-    val title: String? = null,
-    val content: String? = null,
+    val storeName: String = "",
+    val type: String = "",
+    val title: String = "",
+    val content: String = "",
     val imageUrl: String? = null,
     val startAt: String? = null,
     val endAt: String? = null,
-    val status: String? = null,
+    val status: String = "",
 )
