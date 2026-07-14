@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.oshu_android.data.store.toOpeningHoursLabel
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.CrowdStatusResponse
 import com.example.oshu_android.data.store.StoreDetailResponse
@@ -233,6 +234,8 @@ private fun StoreDetailHero(store: StoreDetailResponse) {
 
 @Composable
 private fun StoreDetailInfo(store: StoreDetailResponse) {
+    val openingHours = store.openingHours.toOpeningHoursLabel()
+
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(
@@ -247,21 +250,23 @@ private fun StoreDetailInfo(store: StoreDetailResponse) {
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            if (openingHours != null) {
+                Spacer(modifier = Modifier.weight(1f))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_time),
-                    contentDescription = "영업시간",
-                    tint = OshuTextSecondary,
-                    modifier = Modifier.size(15.dp),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = store.openingHours.toDisplayHours(),
-                    color = OshuTextSecondary,
-                    fontSize = 11.sp,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_time),
+                        contentDescription = "영업시간",
+                        tint = OshuTextSecondary,
+                        modifier = Modifier.size(15.dp),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = openingHours,
+                        color = OshuTextSecondary,
+                        fontSize = 11.sp,
+                    )
+                }
             }
         }
 
@@ -501,18 +506,6 @@ private fun ErrorDetailContent(
         ) {
             Text("다시 시도")
         }
-    }
-}
-
-private fun String?.toDisplayHours(): String {
-    val value = this.orEmpty()
-    val matches = Regex("(?:T|\\s)(\\d{1,2}):(\\d{2})").findAll(value)
-        .map { "${it.groupValues[1].toInt()}:${it.groupValues[2]}" }
-        .toList()
-    return when {
-        matches.size >= 2 -> "${matches[0]} ~ ${matches[1]}"
-        value.isNotBlank() -> value.replace("-", "~").trim()
-        else -> "9:00 ~ 12:00"
     }
 }
 
