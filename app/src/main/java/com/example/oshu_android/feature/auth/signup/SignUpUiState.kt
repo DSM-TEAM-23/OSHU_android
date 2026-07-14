@@ -64,3 +64,51 @@ internal fun isValidPassword(
         password
     )
 }
+
+internal fun passwordValidationMessage(
+    password: String,
+    showEmptyError: Boolean,
+): String? {
+    if (password.isEmpty()) {
+        return if (showEmptyError) {
+            "비밀번호를 입력해주세요."
+        } else {
+            null
+        }
+    }
+
+    if (password.length < 8) {
+        return "비밀번호는 8자 이상 입력해주세요."
+    }
+
+    val hasEnglish =
+        password.any {
+            it in 'a'..'z' ||
+                    it in 'A'..'Z'
+        }
+
+    if (!hasEnglish) {
+        return "비밀번호에 영문을 포함해주세요."
+    }
+
+    val hasNumber =
+        password.any {
+            it.isDigit()
+        }
+
+    if (!hasNumber) {
+        return "비밀번호에 숫자를 포함해주세요."
+    }
+
+    val hasSpecialCharacter =
+        password.any {
+            !it.isLetterOrDigit() &&
+                    !it.isWhitespace()
+        }
+
+    if (!hasSpecialCharacter) {
+        return "비밀번호에 특수문자를 포함해주세요."
+    }
+
+    return null
+}
