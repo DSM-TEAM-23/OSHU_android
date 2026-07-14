@@ -14,27 +14,30 @@ class LoginViewModel(
     private val loginRepository: LoginRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        LoginUiState()
-    )
+    private val _uiState =
+        MutableStateFlow(LoginUiState())
 
     val uiState: StateFlow<LoginUiState> =
         _uiState.asStateFlow()
 
-    fun onLoginIdChanged(value: String) {
+    fun onLoginIdChanged(
+        loginId: String,
+    ) {
         _uiState.update {
             it.copy(
-                loginId = value,
+                loginId = loginId,
                 loginIdError = null,
                 loginError = null,
             )
         }
     }
 
-    fun onPasswordChanged(value: String) {
+    fun onPasswordChanged(
+        password: String,
+    ) {
         _uiState.update {
             it.copy(
-                password = value,
+                password = password,
                 passwordError = null,
                 loginError = null,
             )
@@ -50,10 +53,12 @@ class LoginViewModel(
         }
     }
 
-    fun onKeepLoggedInChanged(checked: Boolean) {
+    fun onKeepLoggedInChanged(
+        keepLoggedIn: Boolean,
+    ) {
         _uiState.update {
             it.copy(
-                keepLoggedIn = checked,
+                keepLoggedIn = keepLoggedIn,
             )
         }
     }
@@ -65,18 +70,15 @@ class LoginViewModel(
             return
         }
 
-        val loginId = currentState.loginId.trim()
-        val password = currentState.password
-
         val loginIdError =
-            if (loginId.isBlank()) {
+            if (currentState.loginId.isBlank()) {
                 "아이디를 입력해주세요."
             } else {
                 null
             }
 
         val passwordError =
-            if (password.isBlank()) {
+            if (currentState.password.isBlank()) {
                 "비밀번호를 입력해주세요."
             } else {
                 null
@@ -107,20 +109,20 @@ class LoginViewModel(
                 )
             }
 
-            val result = loginRepository.login(
-                loginId = loginId,
-                password = password,
-                keepLoggedIn =
-                    currentState.keepLoggedIn,
-            )
-
-            when (result) {
-                is LoginResult.Success -> {
+            when (
+                val result = loginRepository.login(
+                    loginId = currentState.loginId.trim(),
+                    password = currentState.password,
+                    keepLoggedIn =
+                        currentState.keepLoggedIn,
+                )
+            ) {
+                LoginResult.Success -> {
                     _uiState.update {
                         it.copy(
-                            password = "",
                             isLoading = false,
                             isLoginSuccessful = true,
+                            loginError = null,
                         )
                     }
                 }
@@ -130,7 +132,7 @@ class LoginViewModel(
                         it.copy(
                             isLoading = false,
                             loginError =
-                                "아이디 또는 비밀번호를 확인해주세요.",
+                                "아이디 또는 비밀번호가 일치하지 않습니다.",
                         )
                     }
                 }
@@ -160,19 +162,23 @@ class LoginViewModel(
         LoginRepository,
     ) : ViewModelProvider.Factory {
 
-        @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>,
         ): T {
-            require(
+            if (
                 modelClass.isAssignableFrom(
-                    LoginViewModel::class.java
+                    LoginViewModel::class.java,
                 )
-            )
+            ) {
+                @Suppress("UNCHECKED_CAST")
+                return LoginViewModel(
+                    loginRepository = loginRepository,
+                ) as T
+            }
 
-            return LoginViewModel(
-                loginRepository = loginRepository,
-            ) as T
+            throw IllegalArgumentException(
+                "Unknown ViewModel class: ${modelClass.name}",
+            )
         }
     }
 }
