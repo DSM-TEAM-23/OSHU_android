@@ -1,5 +1,7 @@
 package com.example.oshu_android.feature.promotion
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,12 +30,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -593,18 +599,32 @@ private fun PromotionImage(
     shape: RoundedCornerShape,
     showBadge: Boolean = true,
 ) {
-    val imageUrl = promotion.imageUrl?.takeIf { it.isNotBlank() }
-        ?: promotionFallbackImage(promotion)
+    val context = LocalContext.current
+    val fallbackImage = promotionFallbackImage(promotion)
+    val serverImageUrl = remember(promotion.imageUrl) {
+        resolvePromotionImageUrl(
+            context = context,
+            imageUrl = promotion.imageUrl,
+        )
+    }
+    var imageModel by remember(serverImageUrl, fallbackImage) {
+        mutableStateOf(serverImageUrl ?: fallbackImage)
+    }
 
     Box(
         modifier = modifier
             .clip(shape),
     ) {
         AsyncImage(
-            model = imageUrl,
+            model = imageModel,
             contentDescription = promotion.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
+            onError = {
+                if (imageModel != fallbackImage) {
+                    imageModel = fallbackImage
+                }
+            },
         )
 
         if (showBadge) {
@@ -627,6 +647,47 @@ private fun PromotionImage(
                 )
             }
         }
+    }
+}
+
+private fun resolvePromotionImageUrl(
+    context: Context,
+    imageUrl: String?,
+): String? {
+    val rawUrl = imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        ?: return null
+    val apiBaseUrl = context.getString(R.string.oshu_api_base_url)
+        .trim()
+        .trimEnd('/')
+
+    if (apiBaseUrl.isEmpty()) {
+        return rawUrl
+    }
+
+    val parsedUrl = runCatching { Uri.parse(rawUrl) }.getOrNull()
+    val isLocalServerUrl = parsedUrl?.host in setOf(
+        "localhost",
+        "127.0.0.1",
+        "10.0.2.2",
+    )
+
+    return when {
+        isLocalServerUrl -> {
+            val path = parsedUrl?.encodedPath.orEmpty()
+            val query = parsedUrl?.encodedQuery
+            buildString {
+                append(apiBaseUrl)
+                append(if (path.startsWith('/')) path else "/$path")
+                if (!query.isNullOrBlank()) {
+                    append('?')
+                    append(query)
+                }
+            }
+        }
+
+        rawUrl.startsWith("http://") || rawUrl.startsWith("https://") -> rawUrl
+        rawUrl.startsWith('/') -> "$apiBaseUrl$rawUrl"
+        else -> "$apiBaseUrl/$rawUrl"
     }
 }
 
