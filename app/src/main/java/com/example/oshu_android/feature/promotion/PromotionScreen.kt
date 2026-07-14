@@ -84,7 +84,8 @@ fun PromotionScreen(
     val heroPromotion = promotions.firstOrNull()
     val featuredPromotion = promotions.getOrNull(1)
     val secondaryPromotions = promotions.drop(2).take(2)
-    val remainingPromotions = promotions.drop(4)
+    val compactPromotion = promotions.getOrNull(4)
+    val bottomPromotions = promotions.drop(5)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -107,11 +108,11 @@ fun PromotionScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(
-                start = 22.dp,
-                end = 22.dp,
-                bottom = 24.dp,
+                start = 20.dp,
+                end = 20.dp,
+                bottom = 20.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
                 PromotionHeader()
@@ -194,7 +195,7 @@ fun PromotionScreen(
                         }
                     }
 
-                    remainingPromotions.forEach { promotion ->
+                    compactPromotion?.let { promotion ->
                         item {
                             PromotionHorizontalCard(
                                 promotion = promotion,
@@ -202,6 +203,29 @@ fun PromotionScreen(
                                     onPromotionClick(promotion.storeId)
                                 },
                             )
+                        }
+                    }
+
+                    bottomPromotions.chunked(2).forEach { rowPromotions ->
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                rowPromotions.forEach { promotion ->
+                                    PromotionSmallCard(
+                                        promotion = promotion,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = {
+                                            onPromotionClick(promotion.storeId)
+                                        },
+                                    )
+                                }
+
+                                if (rowPromotions.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
                 }
@@ -217,15 +241,15 @@ private fun PromotionHeader() {
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(
-                top = 18.dp,
-                bottom = 8.dp,
+                top = 12.dp,
+                bottom = 4.dp,
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.CenterStart,
     ) {
         Text(
             text = "OSHU",
             color = OshuPink,
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.ExtraBold,
         )
     }
@@ -239,7 +263,7 @@ private fun PromotionHero(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(188.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
     ) {
@@ -247,6 +271,7 @@ private fun PromotionHero(
             promotion = promotion,
             modifier = Modifier.fillMaxSize(),
             shape = RoundedCornerShape(16.dp),
+            showBadge = false,
         )
 
         Box(
@@ -265,20 +290,20 @@ private fun PromotionHero(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(18.dp),
+                .padding(16.dp),
         ) {
             Surface(
-                color = OshuPink.copy(alpha = 0.84f),
-                shape = RoundedCornerShape(18.dp),
+                color = OshuPink.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(10.dp),
             ) {
                 Text(
                     text = promotion.badgeLabel(),
                     modifier = Modifier.padding(
-                        horizontal = 13.dp,
-                        vertical = 7.dp,
+                        horizontal = 10.dp,
+                        vertical = 5.dp,
                     ),
                     color = OshuWhite,
-                    fontSize = 13.sp,
+                fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -290,7 +315,7 @@ private fun PromotionHero(
             Text(
                 text = promotion.title,
                 color = OshuWhite,
-                fontSize = 22.sp,
+                fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -301,7 +326,7 @@ private fun PromotionHero(
                     promotion.content
                 },
                 color = OshuWhite.copy(alpha = 0.9f),
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -315,7 +340,7 @@ private fun PromotionCategoryTabs(
     onCategorySelected: (PromotionCategory) -> Unit,
 ) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(
             items = PromotionCategory.values().toList(),
@@ -324,11 +349,11 @@ private fun PromotionCategoryTabs(
 
             Surface(
                 modifier = Modifier
-                    .height(46.dp)
+                    .height(40.dp)
                     .clickable {
                         onCategorySelected(category)
                     },
-                shape = RoundedCornerShape(23.dp),
+                shape = RoundedCornerShape(20.dp),
                 color = if (selected) OshuPink else OshuWhite,
                 border = if (selected) {
                     null
@@ -341,14 +366,14 @@ private fun PromotionCategoryTabs(
             ) {
                 Box(
                     modifier = Modifier.padding(
-                        horizontal = 18.dp,
+                        horizontal = 16.dp,
                     ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = category.label,
                         color = if (selected) OshuWhite else OshuTextPrimary,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -370,16 +395,53 @@ private fun PromotionLargeCard(
         shape = RoundedCornerShape(16.dp),
     ) {
         Column {
-            PromotionImage(
-                promotion = promotion,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                .height(200.dp),
-                shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                ),
-            )
+                    .height(188.dp),
+            ) {
+                PromotionImage(
+                    promotion = promotion,
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                    ),
+                )
+
+                promotion.periodLabel()
+                    .takeIf { it.isNotBlank() }
+                    ?.let { period ->
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(10.dp),
+                            color = OshuWhite.copy(alpha = 0.92f),
+                            shape = RoundedCornerShape(8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 5.dp,
+                                ),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_time),
+                                    contentDescription = "진행 시간",
+                                    tint = OshuPink,
+                                    modifier = Modifier.size(13.dp),
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(
+                                    text = period,
+                                    color = OshuPink,
+                                    fontSize = 11.sp,
+                                )
+                            }
+                        }
+                    }
+            }
 
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -407,32 +469,6 @@ private fun PromotionLargeCard(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                promotion.periodLabel()
-                    .takeIf { it.isNotBlank() }
-                    ?.let { period ->
-                        Spacer(
-                            modifier = Modifier.height(8.dp),
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_time),
-                                contentDescription = "진행 시간",
-                                tint = OshuPink,
-                                modifier = Modifier.size(15.dp),
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Text(
-                                text = period,
-                                color = OshuPink,
-                                fontSize = 12.sp,
-                            )
-                        }
-                    }
             }
         }
     }
@@ -454,7 +490,7 @@ private fun PromotionSmallCard(
                 promotion = promotion,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(104.dp),
+                    .height(100.dp),
                 shape = RoundedCornerShape(
                     topStart = 14.dp,
                     topEnd = 14.dp,
@@ -509,6 +545,7 @@ private fun PromotionHorizontalCard(
                 promotion = promotion,
                 modifier = Modifier.size(76.dp),
                 shape = RoundedCornerShape(10.dp),
+                showBadge = false,
             )
 
             Spacer(
@@ -557,6 +594,7 @@ private fun PromotionImage(
     promotion: PromotionItem,
     modifier: Modifier,
     shape: RoundedCornerShape,
+    showBadge: Boolean = true,
 ) {
     val imageUrl = promotion.imageUrl?.takeIf { it.isNotBlank() }
         ?: promotionFallbackImage(promotion)
@@ -572,35 +610,25 @@ private fun PromotionImage(
             modifier = Modifier.fillMaxSize(),
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.68f),
-                        ),
+        if (showBadge) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(10.dp),
+                color = OshuPink.copy(alpha = 0.88f),
+                shape = RoundedCornerShape(10.dp),
+            ) {
+                Text(
+                    text = promotion.badgeLabel(),
+                    modifier = Modifier.padding(
+                        horizontal = 9.dp,
+                        vertical = 5.dp,
                     ),
-                ),
-        )
-
-        Surface(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(10.dp),
-            color = OshuPink.copy(alpha = 0.84f),
-            shape = RoundedCornerShape(18.dp),
-        ) {
-            Text(
-                text = promotion.badgeLabel(),
-                modifier = Modifier.padding(
-                    horizontal = 12.dp,
-                    vertical = 6.dp,
-                ),
-                color = OshuWhite,
-                fontSize = 11.sp,
-            )
+                    color = OshuWhite,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
     }
 }
