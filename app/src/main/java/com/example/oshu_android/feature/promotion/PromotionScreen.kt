@@ -239,7 +239,7 @@ private fun PromotionHero(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(208.dp)
+            .height(180.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
     ) {
@@ -374,7 +374,7 @@ private fun PromotionLargeCard(
                 promotion = promotion,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp),
+                .height(200.dp),
                 shape = RoundedCornerShape(
                     topStart = 16.dp,
                     topEnd = 16.dp,
@@ -382,12 +382,12 @@ private fun PromotionLargeCard(
             )
 
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(12.dp),
             ) {
                 Text(
                     text = promotion.title,
                     color = OshuTextPrimary,
-                    fontSize = 21.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -454,7 +454,7 @@ private fun PromotionSmallCard(
                 promotion = promotion,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(126.dp),
+                    .height(104.dp),
                 shape = RoundedCornerShape(
                     topStart = 14.dp,
                     topEnd = 14.dp,
@@ -502,17 +502,17 @@ private fun PromotionHorizontalCard(
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             PromotionImage(
                 promotion = promotion,
-                modifier = Modifier.size(92.dp),
+                modifier = Modifier.size(76.dp),
                 shape = RoundedCornerShape(10.dp),
             )
 
             Spacer(
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(10.dp),
             )
 
             Column(
