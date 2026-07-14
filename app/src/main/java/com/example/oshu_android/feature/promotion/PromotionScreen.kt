@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -413,11 +414,24 @@ private fun PromotionLargeCard(
                             modifier = Modifier.height(8.dp),
                         )
 
-                        Text(
-                            text = period,
-                            color = OshuPink,
-                            fontSize = 12.sp,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_time),
+                                contentDescription = "진행 시간",
+                                tint = OshuPink,
+                                modifier = Modifier.size(15.dp),
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Text(
+                                text = period,
+                                color = OshuPink,
+                                fontSize = 12.sp,
+                            )
+                        }
                     }
             }
         }
@@ -681,8 +695,8 @@ private fun PromotionItem.badgeLabel(): String {
 }
 
 private fun PromotionItem.periodLabel(): String {
-    val start = startAt.orEmpty()
-    val end = endAt.orEmpty()
+    val start = startAt.toDisplayTime()
+    val end = endAt.toDisplayTime()
 
     return when {
         start.isNotBlank() && end.isNotBlank() -> "$start ~ $end"
@@ -690,4 +704,12 @@ private fun PromotionItem.periodLabel(): String {
         start.isNotBlank() -> "시작 $start"
         else -> ""
     }
+}
+
+private fun String?.toDisplayTime(): String {
+    val value = this.orEmpty()
+    val match = Regex("(?:T|\\s)(\\d{1,2}):(\\d{2})").find(value)
+    return match?.let {
+        "${it.groupValues[1].toInt()}:${it.groupValues[2]}"
+    } ?: value.substringBefore(".")
 }
