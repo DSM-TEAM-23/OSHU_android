@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -38,7 +39,7 @@ import com.example.oshu_android.ui.theme.OshuWhite
 
 private val InquiryBackground = Color(0xFFFFFCFD)
 private val InquiryHeader = Color(0xFFFFF0F1)
-private val InquiryBorder = Color(0xFFE3DEE0)
+private val InquiryBorder = Color(0xFFF0DCE1)
 private val InquiryBottomBar = Color(0xFFF6F6F6)
 
 @Composable
@@ -94,17 +95,24 @@ fun InquiryScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(
-                    horizontal = 24.dp,
-                    vertical = 28.dp,
+                    horizontal = 20.dp,
+                    vertical = 20.dp,
                 ),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
                 text = "문의사항",
                 color = OshuTextPrimary,
-                fontSize = 30.sp,
+                fontSize = 27.sp,
                 fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = 18.dp),
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+
+            Text(
+                text = "매장에 전달될 문의 내용을 작성해주세요.",
+                color = OshuTextSecondary.copy(alpha = 0.68f),
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
 
             InquiryField(
@@ -133,7 +141,7 @@ fun InquiryScreen(
                 value = uiState.content,
                 placeholder = "문의 내용을 입력하세요",
                 onValueChange = onContentChanged,
-                minLines = 8,
+                minLines = 6,
             )
 
             uiState.errorMessage?.let { message ->
@@ -157,37 +165,32 @@ fun InquiryScreen(
 
 @Composable
 private fun InquiryHeader(onBackClick: () -> Unit) {
-    Row(
+    androidx.compose.foundation.layout.Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(78.dp)
             .background(InquiryHeader)
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .statusBarsPadding()
+            .height(58.dp)
+            .padding(horizontal = 22.dp),
     ) {
         TextButton(
             onClick = onBackClick,
-            modifier = Modifier.height(48.dp),
+            modifier = Modifier.align(Alignment.CenterStart),
         ) {
             Text(
                 text = "←",
                 color = OshuTextPrimary,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
             )
         }
 
         Text(
             text = "OSHU",
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.align(Alignment.Center),
             color = OshuPink,
-            fontSize = 25.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center,
-        )
-
-        Text(
-            text = "",
-            modifier = Modifier.padding(horizontal = 24.dp),
         )
     }
 }
@@ -200,34 +203,36 @@ private fun InquiryField(
     onValueChange: (String) -> Unit,
     minLines: Int = 1,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = label,
             color = OshuTextPrimary,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
         )
 
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (minLines == 1) 54.dp else 180.dp),
             placeholder = {
                 Text(
                     text = placeholder,
                     color = OshuTextSecondary.copy(alpha = 0.55f),
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                 )
             },
             minLines = minLines,
             singleLine = minLines == 1,
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = OshuPink,
                 unfocusedBorderColor = InquiryBorder,
                 cursorColor = OshuPink,
-                focusedContainerColor = OshuWhite,
-                unfocusedContainerColor = OshuWhite,
+                focusedContainerColor = Color(0xFFFFFFFF),
+                unfocusedContainerColor = Color(0xFFFFFFFF),
             ),
         )
     }
@@ -244,8 +249,8 @@ private fun InquiryBottomActions(
             .fillMaxWidth()
             .background(InquiryBottomBar)
             .padding(
-                horizontal = 24.dp,
-                vertical = 16.dp,
+                horizontal = 20.dp,
+                vertical = 14.dp,
             ),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -253,8 +258,8 @@ private fun InquiryBottomActions(
             onClick = onCancelClick,
             modifier = Modifier
                 .weight(1f)
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
+                .height(50.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = OshuWhite,
                 contentColor = OshuPink,
@@ -273,8 +278,8 @@ private fun InquiryBottomActions(
             enabled = !isSubmitting,
             modifier = Modifier
                 .weight(1f)
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
+                .height(50.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = OshuPink,
                 contentColor = OshuWhite,
