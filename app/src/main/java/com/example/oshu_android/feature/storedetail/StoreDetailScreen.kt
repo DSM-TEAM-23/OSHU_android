@@ -453,7 +453,13 @@ private fun StoreDetailBottomBar(
                 border = androidx.compose.foundation.BorderStroke(1.dp, OshuPink),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text("길찾기")
+                Icon(
+                    painter = painterResource(R.drawable.ic_road),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("길찾기", fontWeight = FontWeight.Bold)
             }
             Button(
                 onClick = onInquiryClick,
@@ -461,7 +467,14 @@ private fun StoreDetailBottomBar(
                 colors = ButtonDefaults.buttonColors(containerColor = OshuPink),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                Text("문의하기", color = OshuWhite)
+                Icon(
+                    painter = painterResource(R.drawable.ic_inquiry),
+                    contentDescription = null,
+                    tint = OshuWhite,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("문의하기", color = OshuWhite, fontWeight = FontWeight.Bold)
             }
         }
     }
