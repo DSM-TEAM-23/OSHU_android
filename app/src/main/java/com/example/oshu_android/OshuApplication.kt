@@ -12,7 +12,7 @@ class OshuApplication : Application() {
             this,
             getString(
                 R.string.kakao_native_app_key
-            ),
+            )
         )
     }
 }
