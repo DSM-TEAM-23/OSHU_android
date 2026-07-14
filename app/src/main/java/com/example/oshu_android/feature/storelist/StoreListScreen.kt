@@ -36,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
+import coil.compose.AsyncImage
 
 private val ListBackground = Color(0xFFFFF8F9)
 private val ListPrimary = Color(0xFFFF8A9C)
@@ -316,9 +319,7 @@ private fun StoreListCard(
         ),
     ) {
         Column {
-            StoreImagePlaceholder(
-                category = store.category,
-            )
+            StoreImage(store = store)
 
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -371,18 +372,11 @@ private fun StoreListCard(
 }
 
 @Composable
-private fun StoreImagePlaceholder(
-    category: String,
+private fun StoreImage(
+    store: StoreCardResponse,
 ) {
-    val backgroundColor = when (
-        category.trim().replace(" ", "").lowercase()
-    ) {
-        "카페", "cafe", "coffee" -> Color(0xFFD8B18B)
-        "음식점", "식당", "restaurant", "food" -> Color(0xFFE7A17A)
-        "마트", "mart" -> Color(0xFFB7D6B8)
-        "베이커리", "bakery" -> Color(0xFFE8BC8E)
-        else -> Color(0xFFDCC8B4)
-    }
+    val imageUrl = store.imageUrl?.takeIf { it.isNotBlank() }
+        ?: storeFallbackImage(store.category)
 
     Box(
         modifier = Modifier
@@ -394,17 +388,58 @@ private fun StoreImagePlaceholder(
                     topEnd = 16.dp,
                 ),
             )
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center,
+        ,
     ) {
-        Icon(
-            painter = painterResource(
-                categoryMarkerResource(category),
-            ),
-            contentDescription = "매장 이미지",
-            tint = Color.White,
-            modifier = Modifier.size(62.dp),
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = store.name,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
         )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.58f),
+                        ),
+                    ),
+                ),
+        )
+
+        if (store.timeSaleActive) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(12.dp),
+                color = ListPrimary.copy(alpha = 0.94f),
+                shape = RoundedCornerShape(8.dp),
+            ) {
+                Text(
+                    text = "진행 중",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(
+                        horizontal = 10.dp,
+                        vertical = 6.dp,
+                    ),
+                )
+            }
+        }
+    }
+}
+
+private fun storeFallbackImage(category: String): String {
+    return when (category.trim().replace(" ", "").lowercase()) {
+        "카페", "cafe", "coffee" -> "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&q=85"
+        "음식점", "식당", "restaurant", "food" -> "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=1200&q=85"
+        "마트", "mart" -> "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=1200&q=85"
+        "베이커리", "bakery" -> "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&q=85"
+        else -> "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=85"
     }
 }
 
