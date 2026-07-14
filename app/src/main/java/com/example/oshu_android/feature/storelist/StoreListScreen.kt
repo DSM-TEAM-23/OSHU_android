@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
@@ -55,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
+import com.example.oshu_android.feature.common.MainBottomNavigation
+import com.example.oshu_android.feature.common.MainDestination
 import coil.compose.AsyncImage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -140,9 +141,15 @@ fun StoreListScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = ListBackground,
         bottomBar = {
-            StoreListBottomBar(
-                onMapClick = onMapClick,
-                onPromotionClick = onPromotionClick,
+            MainBottomNavigation(
+                selectedDestination = MainDestination.STORE_LIST,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        MainDestination.MAP -> onMapClick()
+                        MainDestination.STORE_LIST -> Unit
+                        MainDestination.PROMOTION -> onPromotionClick()
+                    }
+                },
             )
         },
     ) { paddingValues ->
@@ -630,124 +637,6 @@ private fun EmptyStoreList() {
             color = ListHint,
             fontSize = 15.sp,
         )
-    }
-}
-
-@Composable
-private fun StoreListBottomBar(
-    onMapClick: () -> Unit,
-    onPromotionClick: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(78.dp),
-        color = Color.White.copy(alpha = 0.96f),
-        shadowElevation = 8.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    horizontal = 40.dp,
-                ),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            StoreListNavigationItem(
-                label = "지도",
-                selected = false,
-                selectedIcon = R.drawable.ic_map_fill,
-                unselectedIcon = R.drawable.ic_map,
-                onClick = onMapClick,
-            )
-
-            StoreListNavigationItem(
-                label = "목록",
-                selected = true,
-                selectedIcon = R.drawable.ic_inventory_fill,
-                unselectedIcon = R.drawable.ic_inventory,
-                onClick = {},
-            )
-
-            StoreListNavigationItem(
-                label = "프로모션",
-                selected = false,
-                selectedIcon = R.drawable.ic_promotion_fill,
-                unselectedIcon = R.drawable.ic_promotion,
-                onClick = onPromotionClick,
-                showBadge = true,
-            )
-        }
-    }
-}
-
-@Composable
-private fun StoreListNavigationItem(
-    label: String,
-    selected: Boolean,
-    @DrawableRes selectedIcon: Int,
-    @DrawableRes unselectedIcon: Int,
-    onClick: () -> Unit,
-    showBadge: Boolean = false,
-) {
-    Box(
-        modifier = Modifier
-            .width(64.dp)
-            .height(58.dp)
-            .clip(
-                RoundedCornerShape(16.dp),
-            )
-            .background(
-                if (selected) {
-                    ListPrimary
-                } else {
-                    Color.Transparent
-                },
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box {
-                Icon(
-                    painter = painterResource(
-                        if (selected) {
-                            selectedIcon
-                        } else {
-                            unselectedIcon
-                        },
-                    ),
-                    contentDescription = label,
-                    tint = if (selected) Color.White else ListBrown,
-                    modifier = Modifier.size(22.dp),
-                )
-
-                if (showBadge && !selected) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(8.dp)
-                            .background(
-                                color = ListPrimary,
-                                shape = CircleShape,
-                            ),
-                    )
-                }
-            }
-
-            Spacer(
-                modifier = Modifier.height(2.dp),
-            )
-
-            Text(
-                text = label,
-                color = if (selected) Color.White else ListBrown,
-                fontSize = 11.sp,
-            )
-        }
     }
 }
 
