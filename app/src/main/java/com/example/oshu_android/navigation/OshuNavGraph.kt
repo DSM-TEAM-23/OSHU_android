@@ -22,8 +22,10 @@ import com.example.oshu_android.feature.map.MapRoute
 import com.example.oshu_android.feature.map.MapViewModel
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
+import com.example.oshu_android.feature.promotion.PromotionViewModel
 import com.example.oshu_android.feature.storelist.StoreListRoute
 import com.example.oshu_android.feature.storelist.StoreListViewModel
+import com.example.oshu_android.feature.promotion.PromotionRoute
 
 @Composable
 fun OshuNavGraph(
@@ -215,7 +217,23 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.PROMOTION,
         ) {
-            PromotionPlaceholderScreen()
+            val promotionViewModel: PromotionViewModel = viewModel()
+
+            PromotionRoute(
+                viewModel = promotionViewModel,
+                onMapClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.HOME,
+                    )
+                },
+                onListClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.STORE_LIST,
+                    )
+                },
+                onPromotionClick = {
+                },
+            )
         }
     }
 }
