@@ -29,13 +29,15 @@ object StoreModule {
     private fun createRepository(
         context: Context,
     ): StoreRepository {
-        return StoreRepositoryImpl(
-            storeApi =
-                createRetrofit(
-                    context = context,
-                ).create(
-                    StoreApi::class.java
-                ),
+        val storeApi =
+            createRetrofit(
+                context = context,
+            ).create(
+                StoreApi::class.java,
+            )
+
+        return StoreRepository(
+            storeApi = storeApi,
         )
     }
 
@@ -44,11 +46,11 @@ object StoreModule {
     ): Retrofit {
         val configuredBaseUrl =
             context.getString(
-                R.string.oshu_api_base_url
+                R.string.oshu_api_base_url,
             ).trim()
 
         require(
-            configuredBaseUrl.isNotBlank()
+            configuredBaseUrl.isNotBlank(),
         ) {
             "BASE_URL이 설정되지 않았습니다."
         }
@@ -65,7 +67,7 @@ object StoreModule {
         return Retrofit.Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(
-                GsonConverterFactory.create()
+                GsonConverterFactory.create(),
             )
             .build()
     }
