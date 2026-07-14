@@ -168,6 +168,10 @@ dependencies {
         "com.kakao.maps.open:android:2.14.0"
     )
 
+    implementation(
+        "io.coil-kt:coil-compose:2.7.0",
+    )
+
     testImplementation(
         libs.junit
     )

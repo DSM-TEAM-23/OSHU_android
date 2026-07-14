@@ -39,7 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.example.oshu_android.R
 import com.example.oshu_android.feature.common.MainBottomNavigation
 import com.example.oshu_android.feature.common.MainDestination
