@@ -64,7 +64,6 @@ fun MapRoute(
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onTimeSaleClick = viewModel::onTimeSaleClick,
         onHotDealClick = viewModel::onHotDealClick,
-        onReservationClick = viewModel::onReservationClick,
         onStoreClick = viewModel::onStoreClick,
         onMapClick = viewModel::onMapClick,
         onMapError = viewModel::onMapError,
@@ -82,7 +81,6 @@ fun MapScreen(
     onSearchQueryChanged: (String) -> Unit,
     onTimeSaleClick: () -> Unit,
     onHotDealClick: () -> Unit,
-    onReservationClick: () -> Unit,
     onStoreClick: (Long) -> Unit,
     onMapClick: () -> Unit,
     onMapError: (String) -> Unit,
@@ -111,10 +109,8 @@ fun MapScreen(
             query = uiState.searchQuery,
             onQueryChanged = onSearchQueryChanged,
             isHotDealSelected = uiState.isHotDealSelected,
-            isReservationSelected = uiState.isReservationSelected,
             onTimeSaleClick = onTimeSaleClick,
             onHotDealClick = onHotDealClick,
-            onReservationClick = onReservationClick,
             modifier = Modifier.align(Alignment.TopCenter),
         )
 
@@ -164,10 +160,8 @@ private fun MapHeader(
     query: String,
     onQueryChanged: (String) -> Unit,
     isHotDealSelected: Boolean,
-    isReservationSelected: Boolean,
     onTimeSaleClick: () -> Unit,
     onHotDealClick: () -> Unit,
-    onReservationClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(
@@ -243,13 +237,6 @@ private fun MapHeader(
                     icon = R.drawable.ic_hot_deal,
                     selected = isHotDealSelected,
                     onClick = onHotDealClick,
-                )
-
-                MapFilterChip(
-                    text = "예약 가능",
-                    icon = R.drawable.ic_reservation,
-                    selected = isReservationSelected,
-                    onClick = onReservationClick,
                 )
             }
         }
