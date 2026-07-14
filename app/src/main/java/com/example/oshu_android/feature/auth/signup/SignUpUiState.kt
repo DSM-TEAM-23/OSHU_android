@@ -1,10 +1,14 @@
 package com.example.oshu_android.feature.auth.signup
 
 private val loginIdPattern =
-    Regex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$")
+    Regex(
+        "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$"
+    )
 
 private val passwordPattern =
-    Regex("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{8,}$")
+    Regex(
+        "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s]).{8,}$"
+    )
 
 data class SignUpUiState(
     val loginId: String = "",
@@ -21,36 +25,42 @@ data class SignUpUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
 ) {
-
     val allTermsAgreed: Boolean
-        get() =
-            serviceTermsAgreed &&
+        get() {
+            return serviceTermsAgreed &&
                     privacyTermsAgreed &&
                     marketingTermsAgreed
+        }
 
     val requiredTermsAgreed: Boolean
-        get() =
-            serviceTermsAgreed &&
+        get() {
+            return serviceTermsAgreed &&
                     privacyTermsAgreed
+        }
 
     val canSubmit: Boolean
-        get() =
-            isLoginIdChecked &&
-                    loginIdPattern.matches(loginId) &&
-                    passwordPattern.matches(password) &&
+        get() {
+            return isLoginIdChecked &&
+                    isValidLoginId(loginId) &&
+                    isValidPassword(password) &&
                     password == passwordConfirm &&
                     requiredTermsAgreed &&
                     !isLoading
+        }
 }
 
 internal fun isValidLoginId(
     loginId: String,
 ): Boolean {
-    return loginIdPattern.matches(loginId)
+    return loginIdPattern.matches(
+        loginId.trim()
+    )
 }
 
 internal fun isValidPassword(
     password: String,
 ): Boolean {
-    return passwordPattern.matches(password)
+    return passwordPattern.matches(
+        password
+    )
 }
