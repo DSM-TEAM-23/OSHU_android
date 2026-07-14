@@ -10,6 +10,7 @@ data class StoreCardResponse(
     val crowdLevel: String? = null,
     val timeSaleActive: Boolean = false,
     val externalData: Boolean = false,
+    val imageUrl: String? = null,
 )
 
 data class PageResponse<T>(
@@ -87,9 +88,7 @@ data class TimeSaleRequest(
     val productName: String,
     val originalPrice: Int,
     val salePrice: Int,
-    /** ISO-8601 date-time, for example 2026-07-14T09:00:00. */
     val startAt: String,
-    /** ISO-8601 date-time, for example 2026-07-14T12:00:00. */
     val endAt: String,
     val notice: String? = null,
 )
@@ -111,8 +110,6 @@ data class PromotionRequest(
     val title: String,
     val content: String? = null,
     val imageUrl: String? = null,
-    /** ISO-8601 date-time, for example 2026-07-14T09:00:00. */
     val startAt: String,
-    /** ISO-8601 date-time, for example 2026-07-20T23:59:59. */
     val endAt: String,
 )
