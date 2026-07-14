@@ -39,6 +39,16 @@ class AppContainer(
         context = applicationContext,
         accessTokenProvider = sessionStore::getAccessToken,
     )
+
+    val ownerStoreRepository = StoreModule.provideOwnerStoreRepository(
+        context = applicationContext,
+        accessTokenProvider = sessionStore::getAccessToken,
+    )
+
+    val inquiryRepository = StoreModule.provideInquiryRepository(
+        context = applicationContext,
+        accessTokenProvider = sessionStore::getAccessToken,
+    )
 }
 
 private class PreferencesSessionStore(

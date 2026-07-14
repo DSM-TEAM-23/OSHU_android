@@ -1,5 +1,7 @@
 package com.example.oshu_android.data.store
 
+import com.example.oshu_android.data.network.ApiResult
+import com.example.oshu_android.data.network.executeApiCall
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -40,6 +42,41 @@ sealed interface PromotionListResult {
 class StoreRepository(
     private val storeApi: StoreApi,
 ) {
+
+    suspend fun getStoreDetail(
+        storeId: Long,
+    ): ApiResult<StoreDetailResponse> =
+        executeApiCall("가게 상세 정보를 불러오지 못했습니다.") {
+            storeApi.getStoreDetail(storeId)
+        }
+
+    suspend fun getStoreSummary(
+        storeId: Long,
+    ): ApiResult<StoreCardResponse> =
+        executeApiCall("가게 요약 정보를 불러오지 못했습니다.") {
+            storeApi.getStoreSummary(storeId)
+        }
+
+    suspend fun getStorePromotions(
+        storeId: Long,
+    ): ApiResult<List<PromotionResponse>> =
+        executeApiCall("가게 행사를 불러오지 못했습니다.") {
+            storeApi.getStorePromotions(storeId)
+        }
+
+    suspend fun getCrowdStatus(
+        storeId: Long,
+    ): ApiResult<CrowdStatusResponse> =
+        executeApiCall("가게 혼잡도를 불러오지 못했습니다.") {
+            storeApi.getCrowdStatus(storeId)
+        }
+
+    suspend fun getPromotionDetail(
+        promotionId: Long,
+    ): ApiResult<PromotionResponse> =
+        executeApiCall("행사 상세 정보를 불러오지 못했습니다.") {
+            storeApi.getPromotionDetail(promotionId)
+        }
 
     suspend fun getStores(
         keyword: String? = null,

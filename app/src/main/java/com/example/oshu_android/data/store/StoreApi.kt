@@ -1,5 +1,6 @@
 package com.example.oshu_android.data.store
 
+import retrofit2.http.Path
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -39,4 +40,29 @@ interface StoreApi {
         @Query("size")
         size: Int = 20,
     ): Response<PageResponse<PromotionResponse>>
+
+    @GET("stores/{storeId}")
+    suspend fun getStoreDetail(
+        @Path("storeId") storeId: Long,
+    ): Response<StoreDetailResponse>
+
+    @GET("stores/{storeId}/summary")
+    suspend fun getStoreSummary(
+        @Path("storeId") storeId: Long,
+    ): Response<StoreCardResponse>
+
+    @GET("stores/{storeId}/promotions")
+    suspend fun getStorePromotions(
+        @Path("storeId") storeId: Long,
+    ): Response<List<PromotionResponse>>
+
+    @GET("stores/{storeId}/crowd-status")
+    suspend fun getCrowdStatus(
+        @Path("storeId") storeId: Long,
+    ): Response<CrowdStatusResponse>
+
+    @GET("promotions/{promotionId}")
+    suspend fun getPromotionDetail(
+        @Path("promotionId") promotionId: Long,
+    ): Response<PromotionResponse>
 }

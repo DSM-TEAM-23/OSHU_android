@@ -18,12 +18,18 @@ object AuthModule {
     }
 
     private fun createAuthApi(context: Context): AuthApi {
-        val baseUrl = context.getString(
+        val configuredBaseUrl = context.getString(
             R.string.oshu_api_base_url
-        )
+        ).trim()
 
-        require(baseUrl.isNotBlank()) {
+        require(configuredBaseUrl.isNotBlank()) {
             "BASE_URL이 설정되지 않았습니다."
+        }
+
+        val baseUrl = if (configuredBaseUrl.endsWith("/")) {
+            configuredBaseUrl
+        } else {
+            "$configuredBaseUrl/"
         }
 
         return Retrofit.Builder()
