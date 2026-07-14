@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
@@ -42,6 +43,7 @@ import com.example.oshu_android.feature.common.MainDestination
 
 private val PromotionBackground = Color(0xFFFFF8F9)
 private val PromotionPrimary = Color(0xFFFF8A9C)
+private val PromotionPrimaryLight = Color(0xFFFFE9ED)
 private val PromotionBorder = Color(0xFFFFD6DE)
 private val PromotionBrown = Color(0xFF704B50)
 
@@ -111,7 +113,9 @@ fun PromotionScreen(
             item {
                 PromotionHero(
                     onClick = {
-                        primaryPromotion?.let(onPromotionClick)
+                        primaryPromotion?.let { promotion ->
+                            onPromotionClick(promotion.id)
+                        }
                     },
                 )
             }
@@ -500,7 +504,7 @@ private fun PromotionHorizontalCard(
 @Composable
 private fun PromotionVisual(
     promotion: PromotionItem,
-    height: androidx.compose.ui.unit.Dp,
+    height: Dp,
 ) {
     Box(
         modifier = Modifier
@@ -555,5 +559,3 @@ private fun PromotionVisual(
         }
     }
 }
-
-private val PromotionPrimaryLight = Color(0xFFFFE9ED)
