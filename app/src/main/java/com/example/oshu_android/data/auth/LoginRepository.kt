@@ -16,6 +16,8 @@ interface LoginRepository {
 
 interface SessionStore {
 
+    fun getAccessToken(): String?
+
     suspend fun saveAccessToken(
         accessToken: String,
         persist: Boolean,
