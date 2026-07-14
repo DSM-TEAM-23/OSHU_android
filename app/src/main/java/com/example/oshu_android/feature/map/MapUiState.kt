@@ -8,7 +8,6 @@ data class MapUiState(
     val selectedStoreId: Long? = null,
     val isTimeSaleSelected: Boolean = false,
     val isHotDealSelected: Boolean = false,
-    val isReservationSelected: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 ) {
