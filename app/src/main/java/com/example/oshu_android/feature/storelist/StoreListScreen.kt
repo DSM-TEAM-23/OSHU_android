@@ -472,12 +472,6 @@ private fun StoreListCard(
                             store.crowdLevel,
                         ),
                     )
-
-                    if (store.timeSaleActive || activeDiscountLabel != null) {
-                        StoreListTag(
-                            text = activeDiscountLabel ?: store.timeSaleTagLabel(),
-                        )
-                    }
                 }
             }
         }
@@ -563,13 +557,6 @@ private fun StoreCardResponse.timeSaleBadgeLabel(): String {
         ?.takeIf { it > 0 }
         ?.let { "$it% 할인" }
         ?: "타임 세일 진행 중"
-}
-
-private fun StoreCardResponse.timeSaleTagLabel(): String {
-    return discountRate
-        ?.takeIf { it > 0 }
-        ?.let { "$it% 할인" }
-        ?: "타임 세일"
 }
 
 private fun getLastKnownLocation(context: Context): Location? {
