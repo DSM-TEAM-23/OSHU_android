@@ -1,5 +1,10 @@
 package com.example.oshu_android.feature.map
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
@@ -10,6 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,6 +54,40 @@ fun KakaoMapView(
 
     var kakaoMap by remember {
         mutableStateOf<KakaoMap?>(null)
+    }
+
+    var currentLocation by remember {
+        mutableStateOf<Location?>(null)
+    }
+
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            currentLocation = getLastKnownLocation(context)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val fineGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineGranted || coarseGranted) {
+            currentLocation = getLastKnownLocation(context)
+        } else {
+            locationLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
     }
 
     val mapView = remember(context) {
@@ -124,12 +166,23 @@ fun KakaoMapView(
         modifier = modifier,
     )
 
-    LaunchedEffect(kakaoMap, stores, selectedStoreId) {
+    LaunchedEffect(kakaoMap, stores, selectedStoreId, currentLocation) {
         val map = kakaoMap ?: return@LaunchedEffect
         val layer = map.labelManager?.layer ?: return@LaunchedEffect
 
         layer.removeAll()
         layer.setClickable(true)
+
+        currentLocation?.let { location ->
+            layer.addLabel(
+                LabelOptions.from(
+                    "current_location",
+                    LatLng.from(location.latitude, location.longitude),
+                )
+                    .setStyles(R.drawable.ic_my_location)
+                    .setRank(CURRENT_LOCATION_MARKER_RANK),
+            )
+        }
 
         stores.forEach { store ->
             val latitude = store.latitude ?: return@forEach
@@ -159,6 +212,27 @@ fun KakaoMapView(
     }
 }
 
+private fun getLastKnownLocation(context: Context): Location? {
+    val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val fineGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarseGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (!fineGranted && !coarseGranted) return null
+
+    return manager.getProviders(true)
+        .asSequence()
+        .mapNotNull { provider ->
+            runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+        }
+        .maxByOrNull { it.time }
+}
+
 @DrawableRes
 private fun markerResourceForCategory(category: String): Int {
     return when (category.trim().replace(" ", "").lowercase()) {
@@ -173,3 +247,4 @@ private fun markerResourceForCategory(category: String): Int {
 private const val NORMAL_MARKER_RANK = 0L
 private const val TIME_SALE_MARKER_RANK = 500L
 private const val SELECTED_MARKER_RANK = 1000L
+private const val CURRENT_LOCATION_MARKER_RANK = 2000L
