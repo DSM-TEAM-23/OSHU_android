@@ -5,29 +5,16 @@ data class LoginUiState(
     val password: String = "",
     val isPasswordVisible: Boolean = false,
     val keepLoggedIn: Boolean = false,
-    val isLoading: Boolean = false,
     val loginIdError: String? = null,
     val passwordError: String? = null,
     val loginError: String? = null,
+    val isLoading: Boolean = false,
     val isLoginSuccessful: Boolean = false,
 )
 
-data class LoggedInUser(
-    val userId: Long,
-    val loginId: String,
-    val nickname: String?,
-    val role: UserRole,
-)
-
-enum class UserRole {
-    CONSUMER,
-    OWNER,
-}
-
 sealed interface LoginResult {
-    data class Success(
-        val user: LoggedInUser,
-    ) : LoginResult
+
+    data object Success : LoginResult
 
     data object InvalidCredentials : LoginResult
 
