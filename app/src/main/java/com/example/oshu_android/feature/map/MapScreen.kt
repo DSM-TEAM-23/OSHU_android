@@ -1,12 +1,13 @@
 package com.example.oshu_android.feature.map
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,232 +15,208 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
-import com.example.oshu_android.data.store.StoreModule
+import kotlinx.coroutines.delay
+
+private val MapBackground =
+    Color(0xFFFFF7F8)
+
+private val MapPrimary =
+    Color(0xFFFF829B)
+
+private val MapPrimaryLight =
+    Color(0xFFFFDDE4)
+
+private val MapBrown =
+    Color(0xFF6E474A)
+
+private val MapBorder =
+    Color(0xFFFFCBD5)
+
+private val MapHint =
+    Color(0xFF8C8A91)
 
 @Composable
-fun MapScreen() {
-    val context =
-        LocalContext.current
-
-    val storeRepository =
-        remember(context) {
-            StoreModule
-                .provideStoreRepository(
-                    context = context,
-                )
-        }
-
-    val mapViewModel:
-            MapViewModel =
-        viewModel(
-            factory =
-                MapViewModel.Factory(
-                    storeRepository =
-                        storeRepository,
-                ),
-        )
-
+fun MapRoute(
+    viewModel: MapViewModel,
+    onListClick: () -> Unit = {},
+    onPromotionClick: () -> Unit = {},
+    onMyPageClick: () -> Unit = {},
+) {
     val uiState by
-    mapViewModel.uiState
-        .collectAsStateWithLifecycle()
+    viewModel.uiState.collectAsState()
 
-    MapScreenContent(
+    MapScreen(
         uiState = uiState,
-        onSearchQueryChange =
-            mapViewModel::onSearchQueryChange,
-        onSearch =
-            mapViewModel::refresh,
-        onRefresh =
-            mapViewModel::refresh,
-        onTimeSaleFilterClick =
-            mapViewModel::onTimeSaleFilterClick,
-        onHotPlaceFilterClick =
-            mapViewModel::onHotPlaceFilterClick,
+        onSearchQueryChanged =
+            viewModel::onSearchQueryChanged,
+        onTimeSaleClick =
+            viewModel::onTimeSaleClick,
+        onHotDealClick =
+            viewModel::onHotDealClick,
+        onReservationClick =
+            viewModel::onReservationClick,
         onStoreClick =
-            mapViewModel::onStoreClick,
+            viewModel::onStoreClick,
         onMapClick =
-            mapViewModel::onMapClick,
+            viewModel::onMapClick,
         onMapError =
-            mapViewModel::onMapError,
-        onDismissError =
-            mapViewModel::clearError,
+            viewModel::onMapError,
+        onRefresh =
+            viewModel::refresh,
+        onErrorMessageShown =
+            viewModel::onErrorMessageShown,
+        onListClick = onListClick,
+        onPromotionClick = onPromotionClick,
+        onMyPageClick = onMyPageClick,
     )
 }
 
 @Composable
-private fun MapScreenContent(
+fun MapScreen(
     uiState: MapUiState,
-    onSearchQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
-    onRefresh: () -> Unit,
-    onTimeSaleFilterClick: () -> Unit,
-    onHotPlaceFilterClick: () -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onTimeSaleClick: () -> Unit,
+    onHotDealClick: () -> Unit,
+    onReservationClick: () -> Unit,
     onStoreClick: (Long) -> Unit,
     onMapClick: () -> Unit,
     onMapError: (String) -> Unit,
-    onDismissError: () -> Unit,
+    onRefresh: () -> Unit,
+    onErrorMessageShown: () -> Unit,
+    onListClick: () -> Unit,
+    onPromotionClick: () -> Unit,
+    onMyPageClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(
-                    MaterialTheme
-                        .colorScheme
-                        .background
-                ),
-    ) {
-        KakaoMapView(
-            stores =
-                uiState.visibleStores,
-            selectedStoreId =
-                uiState.selectedStoreId,
-            onStoreClick =
-                onStoreClick,
-            onMapClick =
-                onMapClick,
-            onMapError =
-                onMapError,
-            modifier =
-                Modifier.fillMaxSize(),
-        )
-
-        MapTopPanel(
-            query = uiState.searchQuery,
-            timeSaleSelected =
-                uiState.timeSaleOnly,
-            hotPlaceSelected =
-                uiState.hotPlaceOnly,
-            onQueryChange =
-                onSearchQueryChange,
-            onSearch = onSearch,
-            onRefresh = onRefresh,
-            onTimeSaleClick =
-                onTimeSaleFilterClick,
-            onHotPlaceClick =
-                onHotPlaceFilterClick,
-            modifier =
-                Modifier.align(
-                    Alignment.TopCenter
-                ),
-        )
-
-        uiState.selectedStore?.let {
-            SelectedStoreCard(
-                store = it,
-                modifier =
-                    Modifier
-                        .align(
-                            Alignment.BottomCenter
-                        )
-                        .padding(
-                            horizontal = 20.dp,
-                            vertical = 98.dp,
-                        ),
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = MapBackground,
+        bottomBar = {
+            MapBottomBar(
+                selectedItem =
+                    MapBottomDestination.MAP,
+                onMapClick = {},
+                onListClick = onListClick,
+                onPromotionClick =
+                    onPromotionClick,
+                onMyPageClick =
+                    onMyPageClick,
             )
-        }
-
-        MapBottomNavigation(
-            modifier =
-                Modifier.align(
-                    Alignment.BottomCenter
-                ),
-        )
-
-        if (uiState.isLoading) {
-            Surface(
-                shape = CircleShape,
-                color =
-                    MaterialTheme
-                        .colorScheme
-                        .surface
-                        .copy(alpha = 0.94f),
-                shadowElevation = 6.dp,
-                modifier =
-                    Modifier
-                        .align(
-                            Alignment.Center
-                        )
-                        .size(64.dp),
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
             ) {
+                MapHeader(
+                    query = uiState.searchQuery,
+                    onQueryChanged =
+                        onSearchQueryChanged,
+                    isTimeSaleSelected =
+                        uiState.isTimeSaleSelected,
+                    isHotDealSelected =
+                        uiState.isHotDealSelected,
+                    isReservationSelected =
+                        uiState.isReservationSelected,
+                    onTimeSaleClick =
+                        onTimeSaleClick,
+                    onHotDealClick =
+                        onHotDealClick,
+                    onReservationClick =
+                        onReservationClick,
+                )
+
                 Box(
-                    contentAlignment =
-                        Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                 ) {
-                    CircularProgressIndicator(
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .primary,
-                        strokeWidth = 3.dp,
+                    KakaoMapView(
+                        stores =
+                            uiState.filteredStores,
+                        selectedStoreId =
+                            uiState.selectedStoreId,
+                        onStoreClick =
+                            onStoreClick,
+                        onMapClick =
+                            onMapClick,
+                        onMapError =
+                            onMapError,
                         modifier =
-                            Modifier.size(30.dp),
+                            Modifier.fillMaxSize(),
                     )
+
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(
+                                    Alignment.TopCenter,
+                                )
+                                .padding(top = 20.dp)
+                                .size(28.dp),
+                            color = MapPrimary,
+                            strokeWidth = 3.dp,
+                        )
+                    }
+
+                    uiState.selectedStore?.let {
+                        SelectedStoreCard(
+                            store = it,
+                            modifier = Modifier
+                                .align(
+                                    Alignment.BottomCenter,
+                                )
+                                .padding(
+                                    horizontal = 20.dp,
+                                    vertical = 18.dp,
+                                ),
+                        )
+                    }
                 }
             }
-        }
 
-        uiState.errorMessage?.let {
-            Surface(
-                onClick = onDismissError,
-                color =
-                    MaterialTheme
-                        .colorScheme
-                        .errorContainer,
-                shape =
-                    RoundedCornerShape(10.dp),
-                shadowElevation = 4.dp,
-                modifier =
-                    Modifier
+            uiState.errorMessage?.let { message ->
+                MapErrorMessage(
+                    message = message,
+                    onRefresh = onRefresh,
+                    onShown =
+                        onErrorMessageShown,
+                    modifier = Modifier
                         .align(
-                            Alignment.BottomCenter
+                            Alignment.BottomCenter,
                         )
                         .padding(
-                            start = 20.dp,
-                            end = 20.dp,
-                            bottom = 106.dp,
-                        ),
-            ) {
-                Text(
-                    text = it,
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .onErrorContainer,
-                    fontSize = 14.sp,
-                    modifier =
-                        Modifier.padding(
-                            horizontal = 18.dp,
-                            vertical = 12.dp,
+                            start = 24.dp,
+                            end = 24.dp,
+                            bottom = 18.dp,
                         ),
                 )
             }
@@ -248,105 +225,89 @@ private fun MapScreenContent(
 }
 
 @Composable
-private fun MapTopPanel(
+private fun MapHeader(
     query: String,
-    timeSaleSelected: Boolean,
-    hotPlaceSelected: Boolean,
-    onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
-    onRefresh: () -> Unit,
+    onQueryChanged: (String) -> Unit,
+    isTimeSaleSelected: Boolean,
+    isHotDealSelected: Boolean,
+    isReservationSelected: Boolean,
     onTimeSaleClick: () -> Unit,
-    onHotPlaceClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    onHotDealClick: () -> Unit,
+    onReservationClick: () -> Unit,
 ) {
     Surface(
-        color =
-            MaterialTheme
-                .colorScheme
-                .background,
-        shadowElevation = 5.dp,
-        shape =
-            RoundedCornerShape(
-                bottomStart = 18.dp,
-                bottomEnd = 18.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 5.dp,
+                shape = RoundedCornerShape(
+                    bottomStart = 22.dp,
+                    bottomEnd = 22.dp,
+                ),
             ),
-        modifier =
-            modifier.fillMaxWidth(),
+        color = MapBackground,
+        shape = RoundedCornerShape(
+            bottomStart = 22.dp,
+            bottomEnd = 22.dp,
+        ),
     ) {
         Column(
-            modifier =
-                Modifier
-                    .statusBarsPadding()
-                    .padding(
-                        start = 22.dp,
-                        end = 22.dp,
-                        top = 18.dp,
-                        bottom = 18.dp,
-                    ),
+            modifier = Modifier.padding(
+                start = 24.dp,
+                end = 24.dp,
+                top = 28.dp,
+                bottom = 20.dp,
+            ),
         ) {
             Text(
                 text = "OSHU",
-                color =
-                    MaterialTheme
-                        .colorScheme
-                        .primary,
-                fontSize = 26.sp,
-                fontWeight =
-                    FontWeight.Bold,
+                color = MapPrimary,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
             )
 
             Spacer(
-                modifier =
-                    Modifier.height(28.dp),
+                modifier = Modifier.height(28.dp),
             )
 
-            MapSearchBar(
-                query = query,
-                onQueryChange =
-                    onQueryChange,
-                onSearch = onSearch,
-                onRefresh = onRefresh,
+            MapSearchField(
+                value = query,
+                onValueChange = onQueryChanged,
             )
 
             Spacer(
-                modifier =
-                    Modifier.height(20.dp),
+                modifier = Modifier.height(20.dp),
             )
 
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement =
                     Arrangement.spacedBy(10.dp),
-                modifier =
-                    Modifier.fillMaxWidth(),
             ) {
                 MapFilterChip(
                     text = "타임 세일",
-                    iconResource = null,
                     selected =
-                        timeSaleSelected,
-                    enabled = true,
+                        isTimeSaleSelected,
                     onClick =
                         onTimeSaleClick,
                 )
 
                 MapFilterChip(
                     text = "핫딜",
-                    iconResource =
-                        R.drawable.ic_hot_deal,
+                    icon = R.drawable.ic_hot_deal,
                     selected =
-                        hotPlaceSelected,
-                    enabled = true,
+                        isHotDealSelected,
                     onClick =
-                        onHotPlaceClick,
+                        onHotDealClick,
                 )
 
                 MapFilterChip(
                     text = "예약 가능",
-                    iconResource =
-                        R.drawable.ic_reservation,
-                    selected = false,
-                    enabled = false,
-                    onClick = {},
+                    icon = R.drawable.ic_reservation,
+                    selected =
+                        isReservationSelected,
+                    onClick =
+                        onReservationClick,
                 )
             }
         }
@@ -354,125 +315,72 @@ private fun MapTopPanel(
 }
 
 @Composable
-private fun MapSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
-    onRefresh: () -> Unit,
+private fun MapSearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
 ) {
     Surface(
-        shape =
-            RoundedCornerShape(28.dp),
-        color =
-            MaterialTheme
-                .colorScheme
-                .surface,
-        border =
-            BorderStroke(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(58.dp)
+            .border(
                 width = 1.dp,
-                color =
-                    MaterialTheme
-                        .colorScheme
-                        .primary
-                        .copy(alpha = 0.35f),
+                color = MapBorder,
+                shape = RoundedCornerShape(29.dp),
             ),
+        shape = RoundedCornerShape(29.dp),
+        color = Color.White,
         shadowElevation = 2.dp,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(56.dp),
     ) {
         Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp),
             verticalAlignment =
                 Alignment.CenterVertically,
-            modifier =
-                Modifier.padding(
-                    horizontal = 16.dp,
-                ),
         ) {
             Icon(
-                painter =
-                    painterResource(
-                        R.drawable.ic_search
-                    ),
+                painter = painterResource(
+                    R.drawable.ic_search,
+                ),
                 contentDescription = "검색",
-                tint =
-                    MaterialTheme
-                        .colorScheme
-                        .primary,
-                modifier =
-                    Modifier.size(25.dp),
+                tint = MapPrimary,
+                modifier = Modifier.size(27.dp),
             )
 
-            Spacer(
-                modifier =
-                    Modifier.width(12.dp),
-            )
-
-            BasicTextField(
-                value = query,
-                onValueChange =
-                    onQueryChange,
+            androidx.compose.foundation.text.BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
                 singleLine = true,
                 textStyle =
-                    TextStyle(
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .onSurface,
-                        fontSize = 17.sp,
-                    ),
-                keyboardOptions =
-                    KeyboardOptions(
-                        imeAction =
-                            ImeAction.Search,
-                    ),
-                keyboardActions =
-                    KeyboardActions(
-                        onSearch = {
-                            onSearch()
-                        },
-                    ),
-                decorationBox = {
-                    if (query.isBlank()) {
+                    MaterialTheme.typography.bodyLarge
+                        .copy(
+                            color = MapBrown,
+                            fontSize = 17.sp,
+                        ),
+                decorationBox = { innerTextField ->
+                    if (value.isBlank()) {
                         Text(
-                            text =
-                                "지역 혜택 검색...",
-                            color =
-                                MaterialTheme
-                                    .colorScheme
-                                    .onSurface
-                                    .copy(
-                                        alpha = 0.5f
-                                    ),
+                            text = "지역 혜택 검색...",
+                            color = MapHint,
                             fontSize = 17.sp,
                         )
                     }
 
-                    it()
+                    innerTextField()
                 },
-                modifier =
-                    Modifier.weight(1f),
             )
 
             Icon(
-                painter =
-                    painterResource(
-                        R.drawable
-                            .ic_my_location
-                    ),
-                contentDescription =
-                    "내 위치에서 새로고침",
-                tint =
-                    MaterialTheme
-                        .colorScheme
-                        .primary,
-                modifier =
-                    Modifier
-                        .size(27.dp)
-                        .clickable {
-                            onRefresh()
-                        },
+                painter = painterResource(
+                    R.drawable.ic_my_location,
+                ),
+                contentDescription = "내 위치",
+                tint = MapPrimary,
+                modifier = Modifier.size(27.dp),
             )
         }
     }
@@ -481,97 +389,61 @@ private fun MapSearchBar(
 @Composable
 private fun MapFilterChip(
     text: String,
-    @DrawableRes
-    iconResource: Int?,
     selected: Boolean,
-    enabled: Boolean,
     onClick: () -> Unit,
+    @DrawableRes icon: Int? = null,
 ) {
-    val primary =
-        MaterialTheme
-            .colorScheme
-            .primary
-
-    val contentColor =
-        when {
-            selected ->
-                MaterialTheme
-                    .colorScheme
-                    .onPrimary
-
-            enabled ->
-                MaterialTheme
-                    .colorScheme
-                    .onSurface
-
-            else ->
-                MaterialTheme
-                    .colorScheme
-                    .onSurface
-                    .copy(alpha = 0.45f)
-        }
-
     Surface(
-        onClick = onClick,
-        enabled = enabled,
+        modifier = Modifier
+            .height(48.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
         color =
             if (selected) {
-                primary
+                MapPrimary
             } else {
-                MaterialTheme
-                    .colorScheme
-                    .surface
+                Color.White
             },
-        contentColor = contentColor,
-        shape =
-            RoundedCornerShape(24.dp),
         border =
             if (selected) {
                 null
             } else {
-                BorderStroke(
+                androidx.compose.foundation.BorderStroke(
                     width = 1.dp,
-                    color =
-                        primary.copy(
-                            alpha = 0.35f
-                        ),
+                    color = MapBorder,
                 )
             },
-        shadowElevation = 2.dp,
+        shadowElevation = 1.dp,
     ) {
         Row(
+            modifier = Modifier.padding(
+                horizontal = 16.dp,
+            ),
             verticalAlignment =
                 Alignment.CenterVertically,
             horizontalArrangement =
                 Arrangement.Center,
-            modifier =
-                Modifier.padding(
-                    horizontal = 14.dp,
-                    vertical = 11.dp,
-                ),
         ) {
-            if (iconResource != null) {
+            if (icon != null) {
                 Icon(
                     painter =
-                        painterResource(
-                            iconResource
-                        ),
+                        painterResource(icon),
                     contentDescription = null,
                     tint =
-                        when {
-                            selected ->
-                                MaterialTheme
-                                    .colorScheme
-                                    .onPrimary
-
-                            enabled ->
-                                primary
-
-                            else ->
-                                contentColor
+                        if (selected) {
+                            Color.White
+                        } else {
+                            if (
+                                icon ==
+                                R.drawable.ic_hot_deal
+                            ) {
+                                MapPrimary
+                            } else {
+                                MapBrown
+                            }
                         },
                     modifier =
-                        Modifier.size(18.dp),
+                        Modifier.size(20.dp),
                 )
 
                 Spacer(
@@ -582,13 +454,15 @@ private fun MapFilterChip(
 
             Text(
                 text = text,
-                fontSize = 15.sp,
-                fontWeight =
+                color =
                     if (selected) {
-                        FontWeight.SemiBold
+                        Color.White
                     } else {
-                        FontWeight.Medium
+                        MapBrown
                     },
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
             )
         }
     }
@@ -600,289 +474,336 @@ private fun SelectedStoreCard(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        shape =
-            RoundedCornerShape(14.dp),
-        color =
-            MaterialTheme
-                .colorScheme
-                .surface,
-        shadowElevation = 7.dp,
-        modifier =
-            modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {},
+        color = Color.White,
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MapBorder,
+        ),
+        shadowElevation = 4.dp,
     ) {
         Row(
+            modifier = Modifier.padding(14.dp),
             verticalAlignment =
                 Alignment.CenterVertically,
-            modifier =
-                Modifier.padding(14.dp),
         ) {
-            Surface(
-                color =
-                    MaterialTheme
-                        .colorScheme
-                        .primaryContainer,
-                shape =
-                    RoundedCornerShape(10.dp),
-                modifier =
-                    Modifier.size(72.dp),
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(
+                        color = MapPrimaryLight,
+                        shape =
+                            RoundedCornerShape(10.dp),
+                    ),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    contentAlignment =
-                        Alignment.Center,
+                Icon(
+                    painter = painterResource(
+                        markerResource(
+                            category =
+                                store.category,
+                        ),
+                    ),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier =
+                        Modifier.size(44.dp),
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.width(14.dp),
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text =
+                        store.name.ifBlank {
+                            "가게 정보"
+                        },
+                    color = MapBrown,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow =
+                        TextOverflow.Ellipsis,
+                )
+
+                Spacer(
+                    modifier = Modifier.height(5.dp),
+                )
+
+                Text(
+                    text =
+                        store.address.ifBlank {
+                            store.category
+                        },
+                    color = MapBrown.copy(
+                        alpha = 0.72f,
+                    ),
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow =
+                        TextOverflow.Ellipsis,
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp),
+                )
+
+                Row(
+                    horizontalArrangement =
+                        Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(
-                        painter =
-                            painterResource(
-                                markerForCard(
-                                    store.category
-                                )
+                    if (store.timeSaleActive) {
+                        StoreTag(
+                            text = "타임 세일",
+                        )
+                    }
+
+                    store.crowdLevel?.let {
+                        if (it.isNotBlank()) {
+                            StoreTag(
+                                text =
+                                    crowdLabel(it),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoreTag(
+    text: String,
+) {
+    Surface(
+        color = MapPrimaryLight,
+        shape = RoundedCornerShape(5.dp),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(
+                horizontal = 8.dp,
+                vertical = 4.dp,
+            ),
+            color = MapPrimary,
+            fontSize = 11.sp,
+        )
+    }
+}
+
+private enum class MapBottomDestination {
+    MAP,
+    LIST,
+    PROMOTION,
+    MY_PAGE,
+}
+
+@Composable
+private fun MapBottomBar(
+    selectedItem: MapBottomDestination,
+    onMapClick: () -> Unit,
+    onListClick: () -> Unit,
+    onPromotionClick: () -> Unit,
+    onMyPageClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(88.dp),
+        color = MapBackground,
+        shadowElevation = 5.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 28.dp),
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
+            verticalAlignment =
+                Alignment.CenterVertically,
+        ) {
+            BottomNavigationItem(
+                label = "지도",
+                selected =
+                    selectedItem ==
+                            MapBottomDestination.MAP,
+                selectedIcon =
+                    R.drawable.ic_map_fill,
+                unselectedIcon =
+                    R.drawable.ic_map,
+                onClick = onMapClick,
+            )
+
+            BottomNavigationItem(
+                label = "목록",
+                selected =
+                    selectedItem ==
+                            MapBottomDestination.LIST,
+                selectedIcon =
+                    R.drawable.ic_inventory_fill,
+                unselectedIcon =
+                    R.drawable.ic_inventory,
+                onClick = onListClick,
+            )
+
+            BottomNavigationItem(
+                label = "프로모션",
+                selected =
+                    selectedItem ==
+                            MapBottomDestination.PROMOTION,
+                selectedIcon =
+                    R.drawable.ic_promotion_fill,
+                unselectedIcon =
+                    R.drawable.ic_promotion,
+                showBadge = true,
+                onClick = onPromotionClick,
+            )
+
+            BottomNavigationItem(
+                label = "마이페이지",
+                selected =
+                    selectedItem ==
+                            MapBottomDestination.MY_PAGE,
+                selectedIcon =
+                    R.drawable.ic_mypage_fill,
+                unselectedIcon =
+                    R.drawable.ic_mypage,
+                onClick = onMyPageClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BottomNavigationItem(
+    label: String,
+    selected: Boolean,
+    @DrawableRes selectedIcon: Int,
+    @DrawableRes unselectedIcon: Int,
+    onClick: () -> Unit,
+    showBadge: Boolean = false,
+) {
+    Box(
+        modifier = Modifier
+            .width(72.dp)
+            .height(72.dp)
+            .background(
+                color =
+                    if (selected) {
+                        MapPrimary
+                    } else {
+                        Color.Transparent
+                    },
+                shape =
+                    RoundedCornerShape(15.dp),
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment =
+                Alignment.CenterHorizontally,
+            verticalArrangement =
+                Arrangement.Center,
+        ) {
+            Box {
+                Icon(
+                    painter = painterResource(
+                        if (selected) {
+                            selectedIcon
+                        } else {
+                            unselectedIcon
+                        },
+                    ),
+                    contentDescription = label,
+                    tint =
+                        if (selected) {
+                            Color.White
+                        } else {
+                            MapBrown
+                        },
+                    modifier =
+                        Modifier.size(27.dp),
+                )
+
+                if (showBadge) {
+                    Box(
+                        modifier = Modifier
+                            .align(
+                                Alignment.TopEnd,
+                            )
+                            .size(8.dp)
+                            .background(
+                                color = MapPrimary,
+                                shape = CircleShape,
                             ),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier =
-                            Modifier.size(42.dp),
                     )
                 }
             }
 
             Spacer(
-                modifier =
-                    Modifier.width(14.dp),
+                modifier = Modifier.height(4.dp),
             )
 
-            Column(
-                modifier =
-                    Modifier.weight(1f),
-            ) {
-                Text(
-                    text = store.name,
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .onSurface,
-                    fontSize = 19.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    maxLines = 1,
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(4.dp),
-                )
-
-                Text(
-                    text =
-                        store.address
-                            .ifBlank {
-                                store.category
-                            },
-                    color =
-                        MaterialTheme
-                            .colorScheme
-                            .onSurface
-                            .copy(alpha = 0.65f),
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp),
-                )
-
-                Row(
-                    horizontalArrangement =
-                        Arrangement.spacedBy(7.dp),
-                ) {
-                    if (
-                        store.crowdLevel != null
-                    ) {
-                        StoreBadge(
-                            text =
-                                crowdLabel(
-                                    store.crowdLevel
-                                ),
-                        )
-                    }
-
-                    if (store.timeSaleActive) {
-                        StoreBadge(
-                            text = "타임세일",
-                        )
-                    }
-
-                    if (store.externalData) {
-                        StoreBadge(
-                            text = "공공데이터",
-                        )
-                    }
-                }
-            }
+            Text(
+                text = label,
+                color =
+                    if (selected) {
+                        Color.White
+                    } else {
+                        MapBrown
+                    },
+                fontSize = 12.sp,
+                maxLines = 1,
+            )
         }
     }
 }
 
 @Composable
-private fun StoreBadge(
-    text: String,
+private fun MapErrorMessage(
+    message: String,
+    onRefresh: () -> Unit,
+    onShown: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    LaunchedEffect(message) {
+        delay(4000)
+        onShown()
+    }
+
     Surface(
-        color =
-            MaterialTheme
-                .colorScheme
-                .primaryContainer,
-        shape =
-            RoundedCornerShape(6.dp),
+        modifier = modifier.clickable {
+            onRefresh()
+            onShown()
+        },
+        color = Color(0xFFFFD8D5),
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 5.dp,
     ) {
         Text(
-            text = text,
-            color =
-                MaterialTheme
-                    .colorScheme
-                    .primary,
-            fontSize = 11.sp,
-            modifier =
-                Modifier.padding(
-                    horizontal = 8.dp,
-                    vertical = 4.dp,
-                ),
+            text = message,
+            modifier = Modifier.padding(
+                horizontal = 22.dp,
+                vertical = 15.dp,
+            ),
+            color = MapBrown,
+            fontSize = 14.sp,
         )
     }
 }
 
-@Composable
-private fun MapBottomNavigation(
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        color =
-            MaterialTheme
-                .colorScheme
-                .background,
-        shadowElevation = 10.dp,
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(88.dp),
-    ) {
-        Row(
-            horizontalArrangement =
-                Arrangement.SpaceEvenly,
-            verticalAlignment =
-                Alignment.CenterVertically,
-            modifier =
-                Modifier.fillMaxSize(),
-        ) {
-            MapBottomItem(
-                symbol = "◇",
-                text = "지도",
-                selected = true,
-            )
-
-            MapBottomItem(
-                symbol = "▤",
-                text = "목록",
-                selected = false,
-            )
-
-            MapBottomItem(
-                symbol = "◖",
-                text = "프로모션",
-                selected = false,
-                showDot = true,
-            )
-
-            MapBottomItem(
-                symbol = "♙",
-                text = "마이페이지",
-                selected = false,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MapBottomItem(
-    symbol: String,
-    text: String,
-    selected: Boolean,
-    showDot: Boolean = false,
-) {
-    val primary =
-        MaterialTheme
-            .colorScheme
-            .primary
-
-    Surface(
-        color =
-            if (selected) {
-                primary.copy(alpha = 0.18f)
-            } else {
-                Color.Transparent
-            },
-        shape =
-            RoundedCornerShape(14.dp),
-    ) {
-        Column(
-            horizontalAlignment =
-                Alignment.CenterHorizontally,
-            modifier =
-                Modifier.padding(
-                    horizontal = 14.dp,
-                    vertical = 8.dp,
-                ),
-        ) {
-            Box {
-                Text(
-                    text = symbol,
-                    color =
-                        if (selected) {
-                            primary
-                        } else {
-                            MaterialTheme
-                                .colorScheme
-                                .onSurface
-                                .copy(alpha = 0.65f)
-                        },
-                    fontSize = 25.sp,
-                )
-
-                if (showDot) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .align(
-                                    Alignment.TopEnd
-                                )
-                                .size(7.dp)
-                                .background(
-                                    color = primary,
-                                    shape = CircleShape,
-                                ),
-                    )
-                }
-            }
-
-            Text(
-                text = text,
-                color =
-                    if (selected) {
-                        primary
-                    } else {
-                        MaterialTheme
-                            .colorScheme
-                            .onSurface
-                            .copy(alpha = 0.65f)
-                    },
-                fontSize = 12.sp,
-            )
-        }
-    }
-}
-
 @DrawableRes
-private fun markerForCard(
+private fun markerResource(
     category: String,
 ): Int {
     return when (
@@ -924,15 +845,13 @@ private fun markerForCard(
 }
 
 private fun crowdLabel(
-    level: String?,
+    level: String,
 ): String {
-    return when (
-        level?.uppercase()
-    ) {
+    return when (level.uppercase()) {
         "RELAXED" -> "쾌적함"
         "NORMAL" -> "보통"
         "BUSY" -> "혼잡"
         "VERY_BUSY" -> "매우 혼잡"
-        else -> "상태 확인"
+        else -> level
     }
 }
