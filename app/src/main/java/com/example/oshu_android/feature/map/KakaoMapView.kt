@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationListener
 import android.util.Log
+import android.os.Looper
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -60,10 +62,15 @@ fun KakaoMapView(
         mutableStateOf<Location?>(null)
     }
 
+    var hasLocationPermission by remember {
+        mutableStateOf(false)
+    }
+
     val locationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { permissions ->
         if (permissions.values.any { it }) {
+            hasLocationPermission = true
             currentLocation = getLastKnownLocation(context)
         }
     }
@@ -79,6 +86,7 @@ fun KakaoMapView(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (fineGranted || coarseGranted) {
+            hasLocationPermission = true
             currentLocation = getLastKnownLocation(context)
         } else {
             locationLauncher.launch(
@@ -87,6 +95,38 @@ fun KakaoMapView(
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                 ),
             )
+        }
+    }
+
+    DisposableEffect(hasLocationPermission) {
+        if (!hasLocationPermission) {
+            onDispose { }
+        } else {
+            val locationManager = context.getSystemService(
+                Context.LOCATION_SERVICE,
+            ) as LocationManager
+            val listener = LocationListener { location ->
+                currentLocation = location
+            }
+            val providers = locationManager.getProviders(true)
+
+            providers.forEach { provider ->
+                runCatching {
+                    locationManager.requestLocationUpdates(
+                        provider,
+                        2_000L,
+                        5f,
+                        listener,
+                        Looper.getMainLooper(),
+                    )
+                }
+            }
+
+            onDispose {
+                runCatching {
+                    locationManager.removeUpdates(listener)
+                }
+            }
         }
     }
 
