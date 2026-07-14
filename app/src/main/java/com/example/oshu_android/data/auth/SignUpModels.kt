@@ -6,8 +6,5 @@ data class SignUpRequest(
 )
 
 data class SignUpResponse(
-    val userId: Long,
-    val loginId: String,
-    val nickname: String?,
-    val role: String?,
+    val message: String = "",
 )
