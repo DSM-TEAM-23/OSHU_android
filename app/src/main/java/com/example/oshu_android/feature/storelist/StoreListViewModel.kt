@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.oshu_android.data.store.StoreListResult
+import com.example.oshu_android.data.store.PromotionListResult
 import com.example.oshu_android.data.store.StoreRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -99,8 +100,28 @@ class StoreListViewModel(
                 )
             ) {
                 is StoreListResult.Success -> {
+                    val activeDiscountLabels = when (
+                        val promotionResult = storeRepository.getPromotions(
+                            status = "ACTIVE",
+                        )
+                    ) {
+                        is PromotionListResult.Success -> {
+                            promotionResult.promotions
+                                .filter { promotion ->
+                                    promotion.title.contains("할인") ||
+                                            promotion.title.contains("%")
+                                }
+                                .associate { promotion ->
+                                    promotion.storeId to promotion.title
+                                }
+                        }
+
+                        is PromotionListResult.Failure -> emptyMap()
+                    }
+
                     _uiState.value = _uiState.value.copy(
                         stores = result.stores,
+                        activeDiscountLabels = activeDiscountLabels,
                         isLoading = false,
                         errorMessage = null,
                     )
