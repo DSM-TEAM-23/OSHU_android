@@ -5,6 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface StoreApi {
+
     @GET("stores/map")
     suspend fun getMapStores(
         @Query("latitude")
@@ -19,8 +20,6 @@ interface StoreApi {
 
     @GET("promotions")
     suspend fun getPromotions(
-        @Query("status")
-        status: String? = null,
         @Query("page")
         page: Int = 0,
         @Query("size")
