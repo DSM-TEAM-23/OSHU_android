@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ fun InquiryRoute(
         onNumberChanged = viewModel::onNumberChanged,
         onContentChanged = viewModel::onContentChanged,
         onSubmit = viewModel::submit,
+        onSuccessConfirm = onBackClick,
     )
 }
 
@@ -54,7 +56,38 @@ fun InquiryScreen(
     onNumberChanged: (String) -> Unit,
     onContentChanged: (String) -> Unit,
     onSubmit: () -> Unit,
+    onSuccessConfirm: () -> Unit,
 ) {
+    if (uiState.submitted) {
+        AlertDialog(
+            onDismissRequest = onSuccessConfirm,
+            containerColor = Color(0xFFFFFAFB),
+            title = {
+                Text(
+                    text = "문의가 접수되었습니다",
+                    color = OshuTextPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Text(
+                    text = "매장 확인 후 입력하신 연락처로 답변드릴 예정입니다. 연락을 기다려주세요.",
+                    color = OshuTextSecondary,
+                    fontSize = 14.sp,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = onSuccessConfirm,
+                    colors = ButtonDefaults.buttonColors(containerColor = OshuPink),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text("확인")
+                }
+            },
+        )
+    }
+
     Scaffold(
         containerColor = Color(0xFFFFFAFB),
         topBar = {
@@ -92,7 +125,6 @@ fun InquiryScreen(
             InquiryField("문의자 전화번호", uiState.number, "전화번호를 입력하세요", onNumberChanged)
             InquiryField("문의 내용", uiState.content, "문의 내용을 입력하세요", onContentChanged, minLines = 6)
             uiState.errorMessage?.let { Text(it, color = Color(0xFFE04B5F), fontSize = 12.sp) }
-            if (uiState.submitted) Text("문의가 등록되었습니다.", color = OshuPink, fontWeight = FontWeight.Bold)
             Text("※ 문의 내용은 매장 운영자에게 전달됩니다.", color = OshuTextSecondary, fontSize = 11.sp)
         }
     }
