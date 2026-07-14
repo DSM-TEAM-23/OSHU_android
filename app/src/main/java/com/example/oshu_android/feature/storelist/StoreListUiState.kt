@@ -6,6 +6,7 @@ data class StoreListUiState(
     val stores: List<StoreCardResponse> = emptyList(),
     val searchQuery: String = "",
     val selectedCategory: StoreListCategory = StoreListCategory.ALL,
+    val activeDiscountLabels: Map<Long, String> = emptyMap(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 ) {
