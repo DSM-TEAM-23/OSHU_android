@@ -11,6 +11,7 @@ data class StoreCardResponse(
     val timeSaleActive: Boolean = false,
     val externalData: Boolean = false,
     val imageUrl: String? = null,
+    val openingHours: String? = null,
 )
 
 data class PageResponse<T>(
