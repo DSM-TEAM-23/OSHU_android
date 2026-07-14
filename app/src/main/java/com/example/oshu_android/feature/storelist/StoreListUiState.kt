@@ -6,11 +6,12 @@ data class StoreListUiState(
     val stores: List<StoreCardResponse> = emptyList(),
     val searchQuery: String = "",
     val selectedCategory: StoreListCategory = StoreListCategory.ALL,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
 ) {
     val filteredStores: List<StoreCardResponse>
         get() = stores.filter { store ->
-            selectedCategory.matches(store.category) &&
-                    matchesQuery(store)
+            matchesQuery(store)
         }
 
     private fun matchesQuery(
@@ -39,48 +40,28 @@ data class StoreListUiState(
 
 enum class StoreListCategory(
     val label: String,
+    val apiCategory: String?,
 ) {
-    ALL("전체"),
-    CAFE("카페"),
-    RESTAURANT("음식점"),
-    MART("마트"),
-    BAKERY("베이커리");
-
-    fun matches(
-        category: String,
-    ): Boolean {
-        val normalized = category
-            .trim()
-            .replace(" ", "")
-            .lowercase()
-
-        return when (this) {
-            ALL -> true
-
-            CAFE -> normalized in setOf(
-                "카페",
-                "cafe",
-                "coffee",
-            )
-
-            RESTAURANT -> normalized in setOf(
-                "음식점",
-                "식당",
-                "restaurant",
-                "food",
-            )
-
-            MART -> normalized in setOf(
-                "마트",
-                "mart",
-            )
-
-            BAKERY -> normalized in setOf(
-                "베이커리",
-                "bakery",
-            )
-        }
-    }
+    ALL(
+        label = "전체",
+        apiCategory = null,
+    ),
+    CAFE(
+        label = "카페",
+        apiCategory = "카페",
+    ),
+    RESTAURANT(
+        label = "음식점",
+        apiCategory = "음식점",
+    ),
+    MART(
+        label = "마트",
+        apiCategory = "마트",
+    ),
+    BAKERY(
+        label = "베이커리",
+        apiCategory = "베이커리",
+    );
 }
 
 fun crowdLabel(
