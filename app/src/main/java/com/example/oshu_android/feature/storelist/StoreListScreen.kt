@@ -490,8 +490,8 @@ private fun StoreImage(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(12.dp),
-                color = ListPrimary.copy(alpha = 0.94f),
-                shape = RoundedCornerShape(8.dp),
+                color = ListPrimary.copy(alpha = 0.84f),
+                shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
                     text = store.discountRate?.let { "$it% 할인" } ?: "20% 할인",
@@ -499,8 +499,8 @@ private fun StoreImage(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(
-                        horizontal = 10.dp,
-                        vertical = 6.dp,
+                        horizontal = 13.dp,
+                        vertical = 7.dp,
                     ),
                 )
             }

@@ -268,14 +268,14 @@ private fun PromotionHero(
                 .padding(18.dp),
         ) {
             Surface(
-                color = OshuPink,
-                shape = RoundedCornerShape(7.dp),
+                color = OshuPink.copy(alpha = 0.84f),
+                shape = RoundedCornerShape(18.dp),
             ) {
                 Text(
                     text = promotion.badgeLabel(),
                     modifier = Modifier.padding(
-                        horizontal = 10.dp,
-                        vertical = 6.dp,
+                        horizontal = 13.dp,
+                        vertical = 7.dp,
                     ),
                     color = OshuWhite,
                     fontSize = 13.sp,
@@ -589,14 +589,14 @@ private fun PromotionImage(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(10.dp),
-            color = OshuPink,
-            shape = RoundedCornerShape(7.dp),
+            color = OshuPink.copy(alpha = 0.84f),
+            shape = RoundedCornerShape(18.dp),
         ) {
             Text(
                 text = promotion.badgeLabel(),
                 modifier = Modifier.padding(
-                    horizontal = 8.dp,
-                    vertical = 5.dp,
+                    horizontal = 12.dp,
+                    vertical = 6.dp,
                 ),
                 color = OshuWhite,
                 fontSize = 11.sp,
