@@ -103,15 +103,6 @@ class MapViewModel(
         }
     }
 
-    fun onReservationClick() {
-        _uiState.update {
-            it.copy(
-                isReservationSelected =
-                    !it.isReservationSelected,
-            )
-        }
-    }
-
     fun onStoreClick(
         storeId: Long,
     ) {
