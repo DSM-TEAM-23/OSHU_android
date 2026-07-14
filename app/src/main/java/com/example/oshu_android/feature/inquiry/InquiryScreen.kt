@@ -13,10 +13,14 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -171,16 +175,19 @@ private fun InquiryHeader(onBackClick: () -> Unit) {
             .background(InquiryHeader)
             .statusBarsPadding()
             .height(58.dp)
-            .padding(horizontal = 22.dp),
+            .padding(horizontal = 16.dp),
     ) {
-        TextButton(
+        IconButton(
             onClick = onBackClick,
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .height(48.dp),
         ) {
-            Text(
-                text = "←",
-                color = OshuTextPrimary,
-                fontSize = 28.sp,
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "뒤로가기",
+                modifier = Modifier.height(24.dp),
+                tint = OshuTextPrimary,
             )
         }
 
