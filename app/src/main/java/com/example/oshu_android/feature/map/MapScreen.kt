@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
@@ -41,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
+import com.example.oshu_android.feature.common.MainBottomNavigation
+import com.example.oshu_android.feature.common.MainDestination
 import kotlinx.coroutines.delay
 
 private val MapBackground = Color(0xFFFFF8F9)
@@ -145,11 +146,15 @@ fun MapScreen(
             )
         }
 
-        MapBottomBar(
-            selectedItem = MapBottomDestination.MAP,
-            onMapClick = {},
-            onListClick = onListClick,
-            onPromotionClick = onPromotionClick,
+        MainBottomNavigation(
+            selectedDestination = MainDestination.MAP,
+            onDestinationSelected = { destination ->
+                when (destination) {
+                    MainDestination.MAP -> Unit
+                    MainDestination.STORE_LIST -> onListClick()
+                    MainDestination.PROMOTION -> onPromotionClick()
+                }
+            },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
@@ -482,129 +487,6 @@ private fun StoreTag(
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium,
         )
-    }
-}
-
-private enum class MapBottomDestination {
-    MAP,
-    LIST,
-    PROMOTION,
-}
-
-@Composable
-private fun MapBottomBar(
-    selectedItem: MapBottomDestination,
-    onMapClick: () -> Unit,
-    onListClick: () -> Unit,
-    onPromotionClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(92.dp),
-        color = Color.White.copy(alpha = 0.94f),
-        shadowElevation = 8.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 48.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BottomNavigationItem(
-                label = "지도",
-                selected = selectedItem == MapBottomDestination.MAP,
-                selectedIcon = R.drawable.ic_map_fill,
-                unselectedIcon = R.drawable.ic_map,
-                onClick = onMapClick,
-            )
-
-            BottomNavigationItem(
-                label = "목록",
-                selected = selectedItem == MapBottomDestination.LIST,
-                selectedIcon = R.drawable.ic_inventory_fill,
-                unselectedIcon = R.drawable.ic_inventory,
-                onClick = onListClick,
-            )
-
-            BottomNavigationItem(
-                label = "프로모션",
-                selected = selectedItem == MapBottomDestination.PROMOTION,
-                selectedIcon = R.drawable.ic_promotion_fill,
-                unselectedIcon = R.drawable.ic_promotion,
-                onClick = onPromotionClick,
-                showBadge = true,
-            )
-        }
-    }
-}
-
-@Composable
-private fun BottomNavigationItem(
-    label: String,
-    selected: Boolean,
-    @DrawableRes selectedIcon: Int,
-    @DrawableRes unselectedIcon: Int,
-    onClick: () -> Unit,
-    showBadge: Boolean = false,
-) {
-    Box(
-        modifier = Modifier
-            .width(76.dp)
-            .height(70.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (selected) {
-                    MapPrimary
-                } else {
-                    Color.Transparent
-                },
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box {
-                Icon(
-                    painter = painterResource(
-                        if (selected) {
-                            selectedIcon
-                        } else {
-                            unselectedIcon
-                        },
-                    ),
-                    contentDescription = label,
-                    tint = if (selected) Color.White else MapBrown,
-                    modifier = Modifier.size(26.dp),
-                )
-
-                if (showBadge && !selected) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(8.dp)
-                            .background(
-                                color = MapPrimary,
-                                shape = CircleShape,
-                            ),
-                    )
-                }
-            }
-
-            Spacer(
-                modifier = Modifier.height(4.dp),
-            )
-
-            Text(
-                text = label,
-                color = if (selected) Color.White else MapBrown,
-                fontSize = 12.sp,
-            )
-        }
     }
 }
 
