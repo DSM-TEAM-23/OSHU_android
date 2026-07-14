@@ -15,14 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +30,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,55 +43,36 @@ import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
 import kotlinx.coroutines.delay
 
-private val MapBackground =
-    Color(0xFFFFF7F8)
-
-private val MapPrimary =
-    Color(0xFFFF829B)
-
-private val MapPrimaryLight =
-    Color(0xFFFFDDE4)
-
-private val MapBrown =
-    Color(0xFF6E474A)
-
-private val MapBorder =
-    Color(0xFFFFCBD5)
-
-private val MapHint =
-    Color(0xFF8C8A91)
+private val MapBackground = Color(0xFFFFF8F9)
+private val MapPrimary = Color(0xFFFF8A9C)
+private val MapPrimaryLight = Color(0xFFFFE9ED)
+private val MapBrown = Color(0xFF704B50)
+private val MapBorder = Color(0xFFFFD6DE)
+private val MapHint = Color(0xFF969198)
 
 @Composable
 fun MapRoute(
     viewModel: MapViewModel,
     onListClick: () -> Unit = {},
     onPromotionClick: () -> Unit = {},
+    onStoreDetailClick: (Long) -> Unit = {},
 ) {
-    val uiState by
-    viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     MapScreen(
         uiState = uiState,
-        onSearchQueryChanged =
-            viewModel::onSearchQueryChanged,
-        onTimeSaleClick =
-            viewModel::onTimeSaleClick,
-        onHotDealClick =
-            viewModel::onHotDealClick,
-        onReservationClick =
-            viewModel::onReservationClick,
-        onStoreClick =
-            viewModel::onStoreClick,
-        onMapClick =
-            viewModel::onMapClick,
-        onMapError =
-            viewModel::onMapError,
-        onRefresh =
-            viewModel::refresh,
-        onErrorMessageShown =
-            viewModel::onErrorMessageShown,
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onTimeSaleClick = viewModel::onTimeSaleClick,
+        onHotDealClick = viewModel::onHotDealClick,
+        onReservationClick = viewModel::onReservationClick,
+        onStoreClick = viewModel::onStoreClick,
+        onMapClick = viewModel::onMapClick,
+        onMapError = viewModel::onMapError,
+        onRefresh = viewModel::refresh,
+        onErrorMessageShown = viewModel::onErrorMessageShown,
         onListClick = onListClick,
         onPromotionClick = onPromotionClick,
+        onStoreDetailClick = onStoreDetailClick,
     )
 }
 
@@ -108,115 +90,72 @@ fun MapScreen(
     onErrorMessageShown: () -> Unit,
     onListClick: () -> Unit,
     onPromotionClick: () -> Unit,
+    onStoreDetailClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MapBackground,
-        bottomBar = {
-            MapBottomBar(
-                selectedItem =
-                    MapBottomDestination.MAP,
-                onMapClick = {},
-                onListClick = onListClick,
-                onPromotionClick =
-                    onPromotionClick,
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MapBackground),
+    ) {
+        KakaoMapView(
+            stores = uiState.filteredStores,
+            selectedStoreId = uiState.selectedStoreId,
+            onStoreClick = onStoreClick,
+            onMapClick = onMapClick,
+            onMapError = onMapError,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        MapHeader(
+            query = uiState.searchQuery,
+            onQueryChanged = onSearchQueryChanged,
+            isHotDealSelected = uiState.isHotDealSelected,
+            isReservationSelected = uiState.isReservationSelected,
+            onTimeSaleClick = onTimeSaleClick,
+            onHotDealClick = onHotDealClick,
+            onReservationClick = onReservationClick,
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
+
+        uiState.selectedStore?.let { store ->
+            SelectedStoreCard(
+                store = store,
+                onClick = {
+                    onStoreDetailClick(store.storeId)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        bottom = 108.dp,
+                    ),
             )
-        },
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                MapHeader(
-                    query = uiState.searchQuery,
-                    onQueryChanged =
-                        onSearchQueryChanged,
-                    isTimeSaleSelected =
-                        uiState.isTimeSaleSelected,
-                    isHotDealSelected =
-                        uiState.isHotDealSelected,
-                    isReservationSelected =
-                        uiState.isReservationSelected,
-                    onTimeSaleClick =
-                        onTimeSaleClick,
-                    onHotDealClick =
-                        onHotDealClick,
-                    onReservationClick =
-                        onReservationClick,
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    KakaoMapView(
-                        stores =
-                            uiState.filteredStores,
-                        selectedStoreId =
-                            uiState.selectedStoreId,
-                        onStoreClick =
-                            onStoreClick,
-                        onMapClick =
-                            onMapClick,
-                        onMapError =
-                            onMapError,
-                        modifier =
-                            Modifier.fillMaxSize(),
-                    )
-
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .align(
-                                    Alignment.TopCenter,
-                                )
-                                .padding(top = 20.dp)
-                                .size(28.dp),
-                            color = MapPrimary,
-                            strokeWidth = 3.dp,
-                        )
-                    }
-
-                    uiState.selectedStore?.let {
-                        SelectedStoreCard(
-                            store = it,
-                            modifier = Modifier
-                                .align(
-                                    Alignment.BottomCenter,
-                                )
-                                .padding(
-                                    horizontal = 20.dp,
-                                    vertical = 18.dp,
-                                ),
-                        )
-                    }
-                }
-            }
-
-            uiState.errorMessage?.let { message ->
-                MapErrorMessage(
-                    message = message,
-                    onRefresh = onRefresh,
-                    onShown =
-                        onErrorMessageShown,
-                    modifier = Modifier
-                        .align(
-                            Alignment.BottomCenter,
-                        )
-                        .padding(
-                            start = 24.dp,
-                            end = 24.dp,
-                            bottom = 18.dp,
-                        ),
-                )
-            }
         }
+
+        uiState.errorMessage?.let { message ->
+            MapErrorMessage(
+                message = message,
+                onRefresh = onRefresh,
+                onShown = onErrorMessageShown,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        start = 24.dp,
+                        end = 24.dp,
+                        bottom = 224.dp,
+                    ),
+            )
+        }
+
+        MapBottomBar(
+            selectedItem = MapBottomDestination.MAP,
+            onMapClick = {},
+            onListClick = onListClick,
+            onPromotionClick = onPromotionClick,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 
@@ -224,42 +163,52 @@ fun MapScreen(
 private fun MapHeader(
     query: String,
     onQueryChanged: (String) -> Unit,
-    isTimeSaleSelected: Boolean,
     isHotDealSelected: Boolean,
     isReservationSelected: Boolean,
     onTimeSaleClick: () -> Unit,
     onHotDealClick: () -> Unit,
     onReservationClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = Modifier
+    val shape = RoundedCornerShape(
+        bottomStart = 30.dp,
+        bottomEnd = 30.dp,
+    )
+
+    Box(
+        modifier = modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 5.dp,
-                shape = RoundedCornerShape(
-                    bottomStart = 22.dp,
-                    bottomEnd = 22.dp,
+                elevation = 8.dp,
+                shape = shape,
+                clip = false,
+            )
+            .clip(shape)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFFFFF8FA).copy(alpha = 0.98f),
+                        Color(0xFFFFF9FA).copy(alpha = 0.94f),
+                        Color(0xFFFFF5F7).copy(alpha = 0.90f),
+                    ),
                 ),
             ),
-        color = MapBackground,
-        shape = RoundedCornerShape(
-            bottomStart = 22.dp,
-            bottomEnd = 22.dp,
-        ),
     ) {
         Column(
-            modifier = Modifier.padding(
-                start = 24.dp,
-                end = 24.dp,
-                top = 28.dp,
-                bottom = 20.dp,
-            ),
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(
+                    start = 24.dp,
+                    end = 24.dp,
+                    top = 24.dp,
+                    bottom = 22.dp,
+                ),
         ) {
             Text(
                 text = "OSHU",
                 color = MapPrimary,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.ExtraBold,
             )
 
             Spacer(
@@ -277,33 +226,26 @@ private fun MapHeader(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 MapFilterChip(
                     text = "타임 세일",
-                    selected =
-                        isTimeSaleSelected,
-                    onClick =
-                        onTimeSaleClick,
+                    selected = true,
+                    onClick = onTimeSaleClick,
                 )
 
                 MapFilterChip(
                     text = "핫딜",
                     icon = R.drawable.ic_hot_deal,
-                    selected =
-                        isHotDealSelected,
-                    onClick =
-                        onHotDealClick,
+                    selected = isHotDealSelected,
+                    onClick = onHotDealClick,
                 )
 
                 MapFilterChip(
                     text = "예약 가능",
                     icon = R.drawable.ic_reservation,
-                    selected =
-                        isReservationSelected,
-                    onClick =
-                        onReservationClick,
+                    selected = isReservationSelected,
+                    onClick = onReservationClick,
                 )
             }
         }
@@ -325,20 +267,17 @@ private fun MapSearchField(
                 shape = RoundedCornerShape(29.dp),
             ),
         shape = RoundedCornerShape(29.dp),
-        color = Color.White,
+        color = Color.White.copy(alpha = 0.97f),
         shadowElevation = 2.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp),
-            verticalAlignment =
-                Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                painter = painterResource(
-                    R.drawable.ic_search,
-                ),
+                painter = painterResource(R.drawable.ic_search),
                 contentDescription = "검색",
                 tint = MapPrimary,
                 modifier = Modifier.size(27.dp),
@@ -351,12 +290,10 @@ private fun MapSearchField(
                     .weight(1f)
                     .padding(horizontal = 16.dp),
                 singleLine = true,
-                textStyle =
-                    MaterialTheme.typography.bodyLarge
-                        .copy(
-                            color = MapBrown,
-                            fontSize = 17.sp,
-                        ),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MapBrown,
+                    fontSize = 17.sp,
+                ),
                 decorationBox = { innerTextField ->
                     Box {
                         if (value.isBlank()) {
@@ -373,9 +310,7 @@ private fun MapSearchField(
             )
 
             Icon(
-                painter = painterResource(
-                    R.drawable.ic_my_location,
-                ),
+                painter = painterResource(R.drawable.ic_my_location),
                 contentDescription = "내 위치",
                 tint = MapPrimary,
                 modifier = Modifier.size(27.dp),
@@ -396,66 +331,35 @@ private fun MapFilterChip(
             .height(48.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(24.dp),
-        color =
-            if (selected) {
-                MapPrimary
-            } else {
-                Color.White
-            },
-        border =
-            if (selected) {
-                null
-            } else {
-                BorderStroke(
-                    width = 1.dp,
-                    color = MapBorder,
-                )
-            },
+        color = if (selected) MapPrimary else Color.White.copy(alpha = 0.98f),
+        border = if (selected) null else BorderStroke(1.dp, MapBorder),
         shadowElevation = 1.dp,
     ) {
         Row(
-            modifier = Modifier.padding(
-                horizontal = 16.dp,
-            ),
-            verticalAlignment =
-                Alignment.CenterVertically,
-            horizontalArrangement =
-                Arrangement.Center,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
         ) {
-            if (icon != null) {
+            icon?.let {
                 Icon(
-                    painter =
-                        painterResource(icon),
+                    painter = painterResource(it),
                     contentDescription = null,
-                    tint =
-                        if (selected) {
-                            Color.White
-                        } else if (
-                            icon ==
-                            R.drawable.ic_hot_deal
-                        ) {
-                            MapPrimary
-                        } else {
-                            MapBrown
-                        },
-                    modifier =
-                        Modifier.size(20.dp),
+                    tint = when {
+                        selected -> Color.White
+                        it == R.drawable.ic_hot_deal -> MapPrimary
+                        else -> MapBrown
+                    },
+                    modifier = Modifier.size(20.dp),
                 )
 
                 Spacer(
-                    modifier =
-                        Modifier.width(6.dp),
+                    modifier = Modifier.width(6.dp),
                 )
             }
 
             Text(
                 text = text,
-                color =
-                    if (selected) {
-                        Color.White
-                    } else {
-                        MapBrown
-                    },
+                color = if (selected) Color.White else MapBrown,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
@@ -467,47 +371,33 @@ private fun MapFilterChip(
 @Composable
 private fun SelectedStoreCard(
     store: StoreCardResponse,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val subtitle = store.address.ifBlank {
+        store.category.ifBlank {
+            "매장 상세 보기"
+        }
+    }
+
+    val crowdText = store.crowdLevel
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::crowdLabel)
+        ?: "쾌적함"
+
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         color = Color.White,
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MapBorder,
-        ),
-        shadowElevation = 4.dp,
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 10.dp,
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
-            verticalAlignment =
-                Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(
-                        color = MapPrimaryLight,
-                        shape =
-                            RoundedCornerShape(10.dp),
-                    ),
-                contentAlignment =
-                    Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(
-                        markerResource(
-                            category =
-                                store.category,
-                        ),
-                    ),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier =
-                        Modifier.size(44.dp),
-                )
-            }
+            BakeryThumbnail()
 
             Spacer(
                 modifier = Modifier.width(14.dp),
@@ -517,60 +407,68 @@ private fun SelectedStoreCard(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text =
-                        store.name.ifBlank {
-                            "가게 정보"
-                        },
+                    text = store.name,
                     color = MapBrown,
-                    fontSize = 19.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow =
-                        TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(
-                    modifier = Modifier.height(5.dp),
+                    modifier = Modifier.height(4.dp),
                 )
 
                 Text(
-                    text =
-                        store.address.ifBlank {
-                            store.category
-                        },
-                    color = MapBrown.copy(
-                        alpha = 0.72f,
-                    ),
-                    fontSize = 13.sp,
+                    text = subtitle,
+                    color = MapHint,
+                    fontSize = 12.sp,
                     maxLines = 1,
-                    overflow =
-                        TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(
-                    modifier = Modifier.height(8.dp),
+                    modifier = Modifier.height(9.dp),
                 )
 
                 Row(
-                    horizontalArrangement =
-                        Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
-                    if (store.timeSaleActive) {
-                        StoreTag(
-                            text = "타임 세일",
-                        )
-                    }
+                    StoreTag(
+                        text = crowdText,
+                    )
 
-                    store.crowdLevel?.let {
-                        if (it.isNotBlank()) {
-                            StoreTag(
-                                text =
-                                    crowdLabel(it),
-                            )
-                        }
-                    }
+                    StoreTag(
+                        text = "포장 가능",
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BakeryThumbnail() {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFFFE4D6)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFFD79563)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_hot_deal),
+                contentDescription = "매장 이미지",
+                tint = Color.White,
+                modifier = Modifier.size(30.dp),
+            )
         }
     }
 }
@@ -581,7 +479,7 @@ private fun StoreTag(
 ) {
     Surface(
         color = MapPrimaryLight,
-        shape = RoundedCornerShape(5.dp),
+        shape = RoundedCornerShape(6.dp),
     ) {
         Text(
             text = text,
@@ -590,7 +488,8 @@ private fun StoreTag(
                 vertical = 4.dp,
             ),
             color = MapPrimary,
-            fontSize = 11.sp,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
         )
     }
 }
@@ -607,58 +506,45 @@ private fun MapBottomBar(
     onMapClick: () -> Unit,
     onListClick: () -> Unit,
     onPromotionClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(88.dp),
-        color = MapBackground,
-        shadowElevation = 5.dp,
+            .height(92.dp),
+        color = Color.White.copy(alpha = 0.94f),
+        shadowElevation = 8.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 54.dp),
-            horizontalArrangement =
-                Arrangement.SpaceBetween,
-            verticalAlignment =
-                Alignment.CenterVertically,
+                .padding(horizontal = 48.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             BottomNavigationItem(
                 label = "지도",
-                selected =
-                    selectedItem ==
-                            MapBottomDestination.MAP,
-                selectedIcon =
-                    R.drawable.ic_map_fill,
-                unselectedIcon =
-                    R.drawable.ic_map,
+                selected = selectedItem == MapBottomDestination.MAP,
+                selectedIcon = R.drawable.ic_map_fill,
+                unselectedIcon = R.drawable.ic_map,
                 onClick = onMapClick,
             )
 
             BottomNavigationItem(
                 label = "목록",
-                selected =
-                    selectedItem ==
-                            MapBottomDestination.LIST,
-                selectedIcon =
-                    R.drawable.ic_inventory_fill,
-                unselectedIcon =
-                    R.drawable.ic_inventory,
+                selected = selectedItem == MapBottomDestination.LIST,
+                selectedIcon = R.drawable.ic_inventory_fill,
+                unselectedIcon = R.drawable.ic_inventory,
                 onClick = onListClick,
             )
 
             BottomNavigationItem(
                 label = "프로모션",
-                selected =
-                    selectedItem ==
-                            MapBottomDestination.PROMOTION,
-                selectedIcon =
-                    R.drawable.ic_promotion_fill,
-                unselectedIcon =
-                    R.drawable.ic_promotion,
-                showBadge = true,
+                selected = selectedItem == MapBottomDestination.PROMOTION,
+                selectedIcon = R.drawable.ic_promotion_fill,
+                unselectedIcon = R.drawable.ic_promotion,
                 onClick = onPromotionClick,
+                showBadge = true,
             )
         }
     }
@@ -676,25 +562,20 @@ private fun BottomNavigationItem(
     Box(
         modifier = Modifier
             .width(76.dp)
-            .height(72.dp)
+            .height(70.dp)
+            .clip(RoundedCornerShape(16.dp))
             .background(
-                color =
-                    if (selected) {
-                        MapPrimary
-                    } else {
-                        Color.Transparent
-                    },
-                shape =
-                    RoundedCornerShape(15.dp),
+                if (selected) {
+                    MapPrimary
+                } else {
+                    Color.Transparent
+                },
             )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            horizontalAlignment =
-                Alignment.CenterHorizontally,
-            verticalArrangement =
-                Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box {
                 Icon(
@@ -706,25 +587,14 @@ private fun BottomNavigationItem(
                         },
                     ),
                     contentDescription = label,
-                    tint =
-                        if (selected) {
-                            Color.White
-                        } else {
-                            MapBrown
-                        },
-                    modifier =
-                        Modifier.size(27.dp),
+                    tint = if (selected) Color.White else MapBrown,
+                    modifier = Modifier.size(26.dp),
                 )
 
-                if (
-                    showBadge &&
-                    !selected
-                ) {
+                if (showBadge && !selected) {
                     Box(
                         modifier = Modifier
-                            .align(
-                                Alignment.TopEnd,
-                            )
+                            .align(Alignment.TopEnd)
                             .size(8.dp)
                             .background(
                                 color = MapPrimary,
@@ -740,14 +610,8 @@ private fun BottomNavigationItem(
 
             Text(
                 text = label,
-                color =
-                    if (selected) {
-                        Color.White
-                    } else {
-                        MapBrown
-                    },
+                color = if (selected) Color.White else MapBrown,
                 fontSize = 12.sp,
-                maxLines = 1,
             )
         }
     }
@@ -783,48 +647,6 @@ private fun MapErrorMessage(
             color = MapBrown,
             fontSize = 14.sp,
         )
-    }
-}
-
-@DrawableRes
-private fun markerResource(
-    category: String,
-): Int {
-    return when (
-        category
-            .trim()
-            .replace(" ", "")
-            .lowercase()
-    ) {
-        "베이커리",
-        "bakery" ->
-            R.drawable.ic_marker_bakery
-
-        "음식점",
-        "식당",
-        "restaurant",
-        "food" ->
-            R.drawable.ic_marker_food_market
-
-        "카페",
-        "cafe",
-        "coffee" ->
-            R.drawable.ic_marker_cafe
-
-        "마트",
-        "mart" ->
-            R.drawable.ic_marker_mart
-
-        "시장·식료품",
-        "시장/식료품",
-        "시장식료품",
-        "식료품",
-        "marketplace",
-        "market" ->
-            R.drawable.ic_marker_marketplace
-
-        else ->
-            R.drawable.ic_marker_marketplace
     }
 }
 
