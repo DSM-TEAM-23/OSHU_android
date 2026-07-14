@@ -211,18 +211,23 @@ fun PromotionScreen(
 
 @Composable
 private fun PromotionHeader() {
-    Text(
-        text = "OSHU",
+    Box(
         modifier = Modifier
+            .fillMaxWidth()
             .statusBarsPadding()
             .padding(
                 top = 18.dp,
                 bottom = 8.dp,
             ),
-        color = OshuPink,
-        fontSize = 24.sp,
-        fontWeight = FontWeight.ExtraBold,
-    )
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "OSHU",
+            color = OshuPink,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+    }
 }
 
 @Composable

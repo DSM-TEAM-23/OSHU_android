@@ -204,13 +204,17 @@ private fun MapHeader(
                     bottom = 22.dp,
                 ),
         ) {
-            Text(
-                text = "OSHU",
-                color = MapPrimary,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold,
-            )
-
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "OSHU",
+                    color = MapPrimary,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
             Spacer(
                 modifier = Modifier.height(28.dp),
             )

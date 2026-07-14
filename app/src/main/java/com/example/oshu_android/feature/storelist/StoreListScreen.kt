@@ -160,19 +160,23 @@ private fun StoreListHeader() {
         modifier = Modifier.fillMaxWidth(),
         color = Color(0xFFFFF2F5),
     ) {
-        Text(
-            text = "OSHU",
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(
-                    start = 24.dp,
                     top = 18.dp,
                     bottom = 18.dp,
                 ),
-            color = ListPrimary,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "OSHU",
+                color = ListPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+        }
     }
 }
 
