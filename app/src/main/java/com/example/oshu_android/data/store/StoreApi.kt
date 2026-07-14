@@ -6,6 +6,18 @@ import retrofit2.http.Query
 
 interface StoreApi {
 
+    @GET("stores")
+    suspend fun getStores(
+        @Query("keyword")
+        keyword: String?,
+        @Query("category")
+        category: String?,
+        @Query("page")
+        page: Int = 0,
+        @Query("size")
+        size: Int = 20,
+    ): Response<PageResponse<StoreCardResponse>>
+
     @GET("stores/map")
     suspend fun getMapStores(
         @Query("latitude")
@@ -20,9 +32,11 @@ interface StoreApi {
 
     @GET("promotions")
     suspend fun getPromotions(
+        @Query("status")
+        status: String? = null,
         @Query("page")
         page: Int = 0,
         @Query("size")
-        size: Int = 50,
+        size: Int = 20,
     ): Response<PageResponse<PromotionResponse>>
 }
