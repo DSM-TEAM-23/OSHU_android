@@ -1,80 +1,83 @@
 package com.example.oshu_android.data.store
 
 import kotlinx.coroutines.CancellationException
-import retrofit2.HttpException
 import java.io.IOException
+import java.net.SocketTimeoutException
 
-interface StoreRepository {
+sealed interface MapStoreResult {
+
+    data class Success(
+        val stores: List<StoreCardResponse>,
+    ) : MapStoreResult
+
+    data class Failure(
+        val message: String,
+    ) : MapStoreResult
+}
+
+class StoreRepository(
+    private val storeApi: StoreApi,
+) {
 
     suspend fun getMapStores(
         latitude: Double,
         longitude: Double,
         radius: Int,
-        timeSaleOnly: Boolean,
-    ): Result<List<StoreCardResponse>>
-}
-
-class StoreRepositoryImpl(
-    private val storeApi: StoreApi,
-) : StoreRepository {
-
-    override suspend fun getMapStores(
-        latitude: Double,
-        longitude: Double,
-        radius: Int,
-        timeSaleOnly: Boolean,
-    ): Result<List<StoreCardResponse>> {
+    ): MapStoreResult {
         return try {
-            val stores = storeApi.getMapStores(
+            val response = storeApi.getMapStores(
                 latitude = latitude,
                 longitude = longitude,
                 radius = radius,
-                timeSaleOnly = timeSaleOnly,
+                timeSaleOnly = false,
             )
 
-            Result.success(stores)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (_: IOException) {
-            Result.failure(
-                StoreRepositoryException(
-                    "네트워크 연결을 확인해주세요."
-                )
-            )
-        } catch (exception: HttpException) {
-            Result.failure(
-                StoreRepositoryException(
-                    httpErrorMessage(
-                        code = exception.code()
+            when {
+                response.isSuccessful -> {
+                    MapStoreResult.Success(
+                        stores =
+                            response.body().orEmpty(),
                     )
-                )
-            )
-        } catch (_: Exception) {
-            Result.failure(
-                StoreRepositoryException(
-                    "가게 정보를 불러오지 못했습니다."
-                )
-            )
-        }
-    }
+                }
 
-    private fun httpErrorMessage(
-        code: Int,
-    ): String {
-        return when (code) {
-            400 -> "지도 조회 요청이 올바르지 않습니다."
-            401 -> "로그인이 필요합니다."
-            403 -> "지도 조회 권한이 없습니다."
-            404 -> "가게 정보를 찾을 수 없습니다."
-            in 500..599 ->
-                "서버에 문제가 발생했습니다."
+                response.code() == 400 -> {
+                    MapStoreResult.Failure(
+                        message =
+                            "지도 조회 위치 정보를 확인해주세요.",
+                    )
+                }
 
-            else ->
-                "가게 정보를 불러오지 못했습니다."
+                response.code() in 500..599 -> {
+                    MapStoreResult.Failure(
+                        message =
+                            "가게 정보를 불러오지 못했습니다.",
+                    )
+                }
+
+                else -> {
+                    MapStoreResult.Failure(
+                        message =
+                            "지도 조회에 실패했습니다.",
+                    )
+                }
+            }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: SocketTimeoutException) {
+            MapStoreResult.Failure(
+                message =
+                    "서버 응답 시간이 초과되었습니다.",
+            )
+        } catch (exception: IOException) {
+            MapStoreResult.Failure(
+                message =
+                    "네트워크 연결을 확인해주세요.",
+            )
+        } catch (exception: Exception) {
+            MapStoreResult.Failure(
+                message =
+                    "가게 정보를 불러오는 중 오류가 발생했습니다.",
+            )
         }
     }
 }
-
-class StoreRepositoryException(
-    override val message: String,
-) : Exception(message)
