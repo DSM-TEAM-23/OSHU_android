@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,21 +32,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.example.oshu_android.R
 import com.example.oshu_android.feature.common.MainBottomNavigation
 import com.example.oshu_android.feature.common.MainDestination
 
 private val PromotionBackground = Color(0xFFFFF8F9)
 private val PromotionPrimary = Color(0xFFFF8A9C)
-private val PromotionPrimaryLight = Color(0xFFFFE9ED)
 private val PromotionBorder = Color(0xFFFFD6DE)
 private val PromotionBrown = Color(0xFF704B50)
+private val PromotionHint = Color(0xFF969198)
 
 @Composable
 fun PromotionRoute(
@@ -59,6 +62,7 @@ fun PromotionRoute(
     PromotionScreen(
         uiState = uiState,
         onCategorySelected = viewModel::onCategorySelected,
+        onRefresh = viewModel::refresh,
         onMapClick = onMapClick,
         onListClick = onListClick,
         onPromotionClick = onPromotionClick,
@@ -69,15 +73,17 @@ fun PromotionRoute(
 fun PromotionScreen(
     uiState: PromotionUiState,
     onCategorySelected: (PromotionCategory) -> Unit,
+    onRefresh: () -> Unit,
     onMapClick: () -> Unit,
     onListClick: () -> Unit,
     onPromotionClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val promotions = uiState.filteredPromotions
-    val primaryPromotion = promotions.firstOrNull()
-    val secondaryPromotions = promotions.drop(1).take(2)
-    val remainingPromotions = promotions.drop(3)
+    val heroPromotion = promotions.firstOrNull()
+    val featuredPromotion = promotions.getOrNull(1)
+    val secondaryPromotions = promotions.drop(2).take(2)
+    val remainingPromotions = promotions.drop(4)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -110,14 +116,15 @@ fun PromotionScreen(
                 PromotionHeader()
             }
 
-            item {
-                PromotionHero(
-                    onClick = {
-                        primaryPromotion?.let { promotion ->
+            heroPromotion?.let { promotion ->
+                item {
+                    PromotionHero(
+                        promotion = promotion,
+                        onClick = {
                             onPromotionClick(promotion.id)
-                        }
-                    },
-                )
+                        },
+                    )
+                }
             }
 
             item {
@@ -127,50 +134,75 @@ fun PromotionScreen(
                 )
             }
 
-            primaryPromotion?.let { promotion ->
-                item {
-                    PromotionLargeCard(
-                        promotion = promotion,
-                        onClick = {
-                            onPromotionClick(promotion.id)
-                        },
-                    )
+            when {
+                uiState.isLoading -> {
+                    item {
+                        LoadingContent()
+                    }
                 }
-            }
 
-            if (secondaryPromotions.isNotEmpty()) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        secondaryPromotions.forEach { promotion ->
-                            PromotionSmallCard(
+                uiState.errorMessage != null -> {
+                    item {
+                        ErrorContent(
+                            message = uiState.errorMessage,
+                            onRefresh = onRefresh,
+                        )
+                    }
+                }
+
+                promotions.isEmpty() -> {
+                    item {
+                        EmptyContent()
+                    }
+                }
+
+                else -> {
+                    featuredPromotion?.let { promotion ->
+                        item {
+                            PromotionLargeCard(
                                 promotion = promotion,
-                                modifier = Modifier.weight(1f),
                                 onClick = {
                                     onPromotionClick(promotion.id)
                                 },
                             )
                         }
+                    }
 
-                        if (secondaryPromotions.size == 1) {
-                            Spacer(
-                                modifier = Modifier.weight(1f),
+                    if (secondaryPromotions.isNotEmpty()) {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                secondaryPromotions.forEach { promotion ->
+                                    PromotionSmallCard(
+                                        promotion = promotion,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = {
+                                            onPromotionClick(promotion.id)
+                                        },
+                                    )
+                                }
+
+                                if (secondaryPromotions.size == 1) {
+                                    Spacer(
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    remainingPromotions.forEach { promotion ->
+                        item {
+                            PromotionHorizontalCard(
+                                promotion = promotion,
+                                onClick = {
+                                    onPromotionClick(promotion.id)
+                                },
                             )
                         }
                     }
-                }
-            }
-
-            remainingPromotions.forEach { promotion ->
-                item {
-                    PromotionHorizontalCard(
-                        promotion = promotion,
-                        onClick = {
-                            onPromotionClick(promotion.id)
-                        },
-                    )
                 }
             }
         }
@@ -195,6 +227,7 @@ private fun PromotionHeader() {
 
 @Composable
 private fun PromotionHero(
+    promotion: PromotionItem,
     onClick: () -> Unit,
 ) {
     Box(
@@ -202,24 +235,25 @@ private fun PromotionHero(
             .fillMaxWidth()
             .height(208.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        Color(0xFF7D4B35),
-                        Color(0xFFC98D5A),
-                        Color(0xFFF4C38D),
-                    ),
-                ),
-            )
             .clickable(onClick = onClick),
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_hot_deal),
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.28f),
+        PromotionImage(
+            promotion = promotion,
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(16.dp),
+        )
+
+        Box(
             modifier = Modifier
-                .align(Alignment.Center)
-                .size(112.dp),
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.64f),
+                        ),
+                    ),
+                ),
         )
 
         Column(
@@ -232,7 +266,7 @@ private fun PromotionHero(
                 shape = RoundedCornerShape(7.dp),
             ) {
                 Text(
-                    text = "진행 중",
+                    text = promotion.badgeLabel(),
                     modifier = Modifier.padding(
                         horizontal = 10.dp,
                         vertical = 6.dp,
@@ -248,16 +282,22 @@ private fun PromotionHero(
             )
 
             Text(
-                text = "우리 동네 핫딜",
+                text = promotion.title,
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
 
             Text(
-                text = "유성구의 가장 신선한 프로모션",
+                text = promotion.storeName.ifBlank {
+                    promotion.content
+                },
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -322,18 +362,22 @@ private fun PromotionLargeCard(
         shape = RoundedCornerShape(16.dp),
     ) {
         Column {
-            PromotionVisual(
+            PromotionImage(
                 promotion = promotion,
-                height = 240.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp),
+                shape = RoundedCornerShape(
+                    topStart = 16.dp,
+                    topEnd = 16.dp,
+                ),
             )
 
-            Row(
+            Column(
                 modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = promotion.title,
-                    modifier = Modifier.weight(1f),
                     color = Color(0xFF222222),
                     fontSize = 21.sp,
                     fontWeight = FontWeight.Bold,
@@ -341,22 +385,35 @@ private fun PromotionLargeCard(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                promotion.discountText?.let { text ->
-                    Surface(
-                        color = PromotionPrimaryLight,
-                        shape = RoundedCornerShape(7.dp),
-                    ) {
+                Spacer(
+                    modifier = Modifier.height(6.dp),
+                )
+
+                Text(
+                    text = promotion.content.ifBlank {
+                        promotion.storeName
+                    },
+                    color = PromotionBrown,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                promotion.periodLabel()
+                    .takeIf {
+                        it.isNotBlank()
+                    }
+                    ?.let { period ->
+                        Spacer(
+                            modifier = Modifier.height(8.dp),
+                        )
+
                         Text(
-                            text = text,
-                            modifier = Modifier.padding(
-                                horizontal = 9.dp,
-                                vertical = 6.dp,
-                            ),
+                            text = period,
                             color = PromotionPrimary,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                         )
                     }
-                }
             }
         }
     }
@@ -374,9 +431,15 @@ private fun PromotionSmallCard(
         shape = RoundedCornerShape(14.dp),
     ) {
         Column {
-            PromotionVisual(
+            PromotionImage(
                 promotion = promotion,
-                height = 126.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(126.dp),
+                shape = RoundedCornerShape(
+                    topStart = 14.dp,
+                    topEnd = 14.dp,
+                ),
             )
 
             Column(
@@ -396,7 +459,7 @@ private fun PromotionSmallCard(
                 )
 
                 Text(
-                    text = promotion.subtitle,
+                    text = promotion.storeName,
                     color = PromotionBrown,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -423,27 +486,11 @@ private fun PromotionHorizontalCard(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(92.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                Color(promotion.colorStart),
-                                Color(promotion.colorEnd),
-                            ),
-                        ),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_hot_deal),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(36.dp),
-                )
-            }
+            PromotionImage(
+                promotion = promotion,
+                modifier = Modifier.size(92.dp),
+                shape = RoundedCornerShape(10.dp),
+            )
 
             Spacer(
                 modifier = Modifier.size(14.dp),
@@ -453,7 +500,7 @@ private fun PromotionHorizontalCard(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = promotion.badge,
+                    text = promotion.badgeLabel(),
                     color = PromotionPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -473,89 +520,140 @@ private fun PromotionHorizontalCard(
                 )
 
                 Text(
-                    text = promotion.subtitle,
+                    text = promotion.storeName.ifBlank {
+                        promotion.content
+                    },
                     color = PromotionBrown,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-
-            promotion.discountText?.let { text ->
-                Surface(
-                    color = PromotionPrimary,
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                    Text(
-                        text = text,
-                        modifier = Modifier.padding(
-                            horizontal = 9.dp,
-                            vertical = 7.dp,
-                        ),
-                        color = Color.White,
-                        fontSize = 14.sp,
-                    )
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun PromotionVisual(
+private fun PromotionImage(
     promotion: PromotionItem,
-    height: Dp,
+    modifier: Modifier,
+    shape: RoundedCornerShape,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(
-                RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                ),
-            )
+        modifier = modifier
+            .clip(shape)
             .background(
                 Brush.linearGradient(
                     listOf(
-                        Color(promotion.colorStart),
-                        Color(promotion.colorEnd),
+                        Color(0xFFB87559),
+                        Color(0xFFF2C78F),
                     ),
                 ),
             ),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_hot_deal),
-            contentDescription = null,
-            tint = Color.White.copy(alpha = 0.74f),
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(
-                    if (height > 180.dp) {
-                        78.dp
-                    } else {
-                        46.dp
-                    },
-                ),
-        )
+        if (promotion.imageUrl != null) {
+            AsyncImage(
+                model = promotion.imageUrl,
+                contentDescription = promotion.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.ic_hot_deal),
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.74f),
+                modifier = Modifier.size(46.dp),
+            )
+        }
 
         Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(12.dp),
+                .padding(10.dp),
             color = PromotionPrimary,
             shape = RoundedCornerShape(7.dp),
         ) {
             Text(
-                text = promotion.badge,
+                text = promotion.badgeLabel(),
                 modifier = Modifier.padding(
-                    horizontal = 9.dp,
-                    vertical = 6.dp,
+                    horizontal = 8.dp,
+                    vertical = 5.dp,
                 ),
                 color = Color.White,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
             )
         }
+    }
+}
+
+@Composable
+private fun LoadingContent() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 90.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(
+            color = PromotionPrimary,
+        )
+    }
+}
+
+@Composable
+private fun ErrorContent(
+    message: String,
+    onRefresh: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onRefresh),
+        color = Color.White,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = PromotionBorder,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = message,
+                color = PromotionBrown,
+                fontSize = 14.sp,
+            )
+
+            Spacer(
+                modifier = Modifier.height(10.dp),
+            )
+
+            Text(
+                text = "다시 시도",
+                color = PromotionPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyContent() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 90.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "진행 중인 프로모션이 없습니다.",
+            color = PromotionHint,
+            fontSize = 15.sp,
+        )
     }
 }
