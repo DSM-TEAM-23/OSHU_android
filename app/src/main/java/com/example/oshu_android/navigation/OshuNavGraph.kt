@@ -23,6 +23,8 @@ import com.example.oshu_android.feature.storelist.StoreListRoute
 import com.example.oshu_android.feature.storelist.StoreListViewModel
 import com.example.oshu_android.feature.storedetail.StoreDetailRoute
 import com.example.oshu_android.feature.storedetail.StoreDetailViewModel
+import com.example.oshu_android.feature.inquiry.InquiryRoute
+import com.example.oshu_android.feature.inquiry.InquiryViewModel
 
 @Composable
 fun OshuNavGraph(
@@ -257,6 +259,28 @@ fun OshuNavGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onInquiryClick = {
+                    navController.navigate("${OshuRoutes.INQUIRY}/$storeId")
+                },
+            )
+        }
+
+        composable(
+            route = "${OshuRoutes.INQUIRY}/{storeId}",
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.LongType },
+            ),
+        ) { backStackEntry ->
+            val storeId = backStackEntry.arguments?.getLong("storeId") ?: return@composable
+            val inquiryViewModel: InquiryViewModel = viewModel(
+                factory = InquiryViewModel.Factory(
+                    inquiryRepository = appContainer.inquiryRepository,
+                    storeId = storeId,
+                ),
+            )
+            InquiryRoute(
+                viewModel = inquiryViewModel,
+                onBackClick = { navController.popBackStack() },
             )
         }
     }

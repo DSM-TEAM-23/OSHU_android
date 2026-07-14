@@ -9,4 +9,5 @@ object OshuRoutes {
     const val STORE_LIST = "store_list"
     const val PROMOTION = "promotion"
     const val STORE_DETAIL = "store_detail"
+    const val INQUIRY = "inquiry"
 }
