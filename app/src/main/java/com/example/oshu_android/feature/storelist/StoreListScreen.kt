@@ -1,5 +1,10 @@
 package com.example.oshu_android.feature.storelist
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,8 +35,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +55,11 @@ import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
 import coil.compose.AsyncImage
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import java.util.Locale
+import kotlin.math.roundToInt
 
 private val ListBackground = Color(0xFFFFF8F9)
 private val ListPrimary = Color(0xFFFF8A9C)
@@ -63,6 +77,37 @@ fun StoreListRoute(
     onStoreDetailClick: (Long) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var currentLocation by remember { mutableStateOf<Location?>(null) }
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            currentLocation = getLastKnownLocation(context)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val fineGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineGranted || coarseGranted) {
+            currentLocation = getLastKnownLocation(context)
+        } else {
+            locationLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
+    }
 
     LaunchedEffect(stores) {
         viewModel.updateStores(stores)
@@ -75,6 +120,7 @@ fun StoreListRoute(
         onMapClick = onMapClick,
         onPromotionClick = onPromotionClick,
         onStoreDetailClick = onStoreDetailClick,
+        currentLocation = currentLocation,
     )
 }
 
@@ -86,6 +132,7 @@ fun StoreListScreen(
     onMapClick: () -> Unit,
     onPromotionClick: () -> Unit,
     onStoreDetailClick: (Long) -> Unit,
+    currentLocation: Location? = null,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -141,6 +188,7 @@ fun StoreListScreen(
                 ) { store ->
                     StoreListCard(
                         store = store,
+                        currentLocation = currentLocation,
                         onClick = {
                             onStoreDetailClick(store.storeId)
                         },
@@ -305,6 +353,7 @@ private fun StoreCategoryTabs(
 @Composable
 private fun StoreListCard(
     store: StoreCardResponse,
+    currentLocation: Location?,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -366,9 +415,7 @@ private fun StoreListCard(
                 )
 
                 Text(
-                    text = store.address.ifBlank {
-                        store.category
-                    },
+                    text = "${storeDistanceLabel(store, currentLocation)} · ${store.category.ifBlank { "기타" }}",
                     color = ListPrimary,
                     fontSize = 15.sp,
                     maxLines = 1,
@@ -447,7 +494,7 @@ private fun StoreImage(
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text(
-                    text = "진행 중",
+                    text = store.discountRate?.let { "$it% 할인" } ?: "20% 할인",
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -458,6 +505,54 @@ private fun StoreImage(
                 )
             }
         }
+    }
+}
+
+private fun getLastKnownLocation(context: Context): Location? {
+    val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val fineGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarseGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (!fineGranted && !coarseGranted) return null
+
+    return manager.getProviders(true)
+        .asSequence()
+        .mapNotNull { provider ->
+            runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+        }
+        .maxByOrNull { it.time }
+}
+
+private fun storeDistanceLabel(
+    store: StoreCardResponse,
+    currentLocation: Location?,
+): String {
+    val latitude = store.latitude
+    val longitude = store.longitude
+    if (currentLocation == null || latitude == null || longitude == null) {
+        return "거리 확인 중"
+    }
+
+    val result = FloatArray(1)
+    Location.distanceBetween(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        latitude,
+        longitude,
+        result,
+    )
+
+    val meters = result[0].roundToInt()
+    return if (meters >= 1000) {
+        String.format(Locale.KOREA, "%.1fkm", meters / 1000f)
+    } else {
+        "${meters}m"
     }
 }
 

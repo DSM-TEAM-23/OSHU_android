@@ -5,7 +5,6 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-/** 화면 계층이 HTTP/네트워크 예외를 직접 처리하지 않도록 하는 공통 결과 타입입니다. */
 sealed interface ApiResult<out T> {
 
     data class Success<T>(

@@ -10,7 +10,6 @@ import retrofit2.http.Path
 
 interface InquiryApi {
 
-    /** 문의 등록은 명세상 인증 없이 호출합니다. */
     @POST("inquiry/store/{storeId}")
     suspend fun createInquiry(
         @Path("storeId") storeId: Long,
