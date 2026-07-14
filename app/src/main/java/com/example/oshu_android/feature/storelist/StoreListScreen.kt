@@ -324,14 +324,42 @@ private fun StoreListCard(
             Column(
                 modifier = Modifier.padding(16.dp),
             ) {
-                Text(
-                    text = store.name,
-                    color = Color(0xFF222222),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = store.name,
+                        modifier = Modifier.weight(1f),
+                        color = Color(0xFF222222),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_time),
+                            contentDescription = "영업시간",
+                            tint = ListHint,
+                            modifier = Modifier.size(15.dp),
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = store.openingHours.toDisplayHours(),
+                            color = ListHint,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                        )
+                    }
+                }
 
                 Spacer(
                     modifier = Modifier.height(8.dp),
@@ -478,6 +506,20 @@ private fun EmptyStoreList() {
             color = ListHint,
             fontSize = 15.sp,
         )
+    }
+}
+
+private fun String?.toDisplayHours(): String {
+    val value = this.orEmpty()
+    val matches = Regex("(?:T|\\s)(\\d{1,2}):(\\d{2})").findAll(value)
+        .map { "${it.groupValues[1].toInt()}:${it.groupValues[2]}" }
+        .toList()
+
+    return when {
+        matches.size >= 2 -> "${matches[0]} ~ ${matches[1]}"
+        matches.size == 1 -> "${matches[0]} ~ 12:00"
+        value.matches(Regex("\\d{1,2}:\\d{2}\\s*~\\s*\\d{1,2}:\\d{2}")) -> value
+        else -> "9:00 ~ 12:00"
     }
 }
 
