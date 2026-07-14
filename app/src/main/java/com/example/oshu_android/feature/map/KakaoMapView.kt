@@ -40,27 +40,37 @@ fun KakaoMapView(
     initialZoomLevel: Int = 14,
 ) {
     val context = LocalContext.current
+
     val lifecycleOwner =
         LocalLifecycleOwner.current
 
     val currentOnStoreClick by
-    rememberUpdatedState(onStoreClick)
+    rememberUpdatedState(
+        newValue = onStoreClick,
+    )
 
     val currentOnMapClick by
-    rememberUpdatedState(onMapClick)
+    rememberUpdatedState(
+        newValue = onMapClick,
+    )
 
     val currentOnMapError by
-    rememberUpdatedState(onMapError)
+    rememberUpdatedState(
+        newValue = onMapError,
+    )
 
-    val mapView = remember {
-        MapView(context)
-    }
+    val mapView =
+        remember(context) {
+            MapView(context)
+        }
 
-    val hasStarted = remember {
-        AtomicBoolean(false)
-    }
+    val hasStarted =
+        remember {
+            AtomicBoolean(false)
+        }
 
-    var kakaoMap by remember {
+    var kakaoMap by
+    remember {
         mutableStateOf<KakaoMap?>(null)
     }
 
@@ -115,6 +125,8 @@ fun KakaoMapView(
                                             storeId
                                         )
                                     }
+
+                                    true
                                 }
 
                                 map.setOnMapClickListener {
@@ -159,7 +171,9 @@ fun KakaoMapView(
                 ?: return@LaunchedEffect
 
         val layer =
-            map.labelManager.layer
+            map.labelManager
+                ?.layer
+                ?: return@LaunchedEffect
 
         layer.removeAll()
         layer.setClickable(true)
@@ -178,9 +192,15 @@ fun KakaoMapView(
                 return@forEach
             }
 
+            val hasValidLatitude =
+                latitude in -90.0..90.0
+
+            val hasValidLongitude =
+                longitude in -180.0..180.0
+
             if (
-                latitude !in -90.0..90.0 ||
-                longitude !in -180.0..180.0
+                !hasValidLatitude ||
+                !hasValidLongitude
             ) {
                 return@forEach
             }
@@ -190,36 +210,40 @@ fun KakaoMapView(
                     category = store.category,
                 )
 
-            val isSelected =
-                store.storeId ==
-                        selectedStoreId
+            val rank =
+                when {
+                    store.storeId ==
+                            selectedStoreId ->
+                        SELECTED_MARKER_RANK
 
-            val options =
+                    store.timeSaleActive ->
+                        TIME_SALE_MARKER_RANK
+
+                    else ->
+                        NORMAL_MARKER_RANK
+                }
+
+            val position =
+                LatLng.from(
+                    latitude,
+                    longitude,
+                )
+
+            val labelOptions =
                 LabelOptions.from(
                     "store_${store.storeId}",
-                    LatLng.from(
-                        latitude,
-                        longitude,
-                    ),
+                    position,
                 )
                     .setStyles(
                         markerResource
                     )
                     .setClickable(true)
                     .setTag(store.storeId)
-                    .setRank(
-                        if (isSelected) {
-                            1000L
-                        } else if (
-                            store.timeSaleActive
-                        ) {
-                            500L
-                        } else {
-                            0L
-                        }
-                    )
+                    .setRank(rank)
 
-            layer.addLabel(options)
+            layer.addLabel(
+                labelOptions
+            )
         }
     }
 
@@ -235,7 +259,9 @@ fun KakaoMapView(
                     _,
                     event,
                 ->
-                if (!hasStarted.get()) {
+                if (
+                    !hasStarted.get()
+                ) {
                     return@LifecycleEventObserver
                 }
 
@@ -256,7 +282,9 @@ fun KakaoMapView(
                 }
             }
 
-        lifecycle.addObserver(observer)
+        lifecycle.addObserver(
+            observer
+        )
 
         if (
             hasStarted.get() &&
@@ -292,11 +320,14 @@ fun KakaoMapView(
 private fun markerResourceForCategory(
     category: String,
 ): Int {
-    return when (
+    val normalizedCategory =
         category
             .trim()
             .replace(" ", "")
             .lowercase()
+
+    return when (
+        normalizedCategory
     ) {
         "베이커리",
         "bakery" ->
@@ -329,3 +360,12 @@ private fun markerResourceForCategory(
             R.drawable.ic_marker_marketplace
     }
 }
+
+private const val NORMAL_MARKER_RANK =
+    0L
+
+private const val TIME_SALE_MARKER_RANK =
+    500L
+
+private const val SELECTED_MARKER_RANK =
+    1000L
