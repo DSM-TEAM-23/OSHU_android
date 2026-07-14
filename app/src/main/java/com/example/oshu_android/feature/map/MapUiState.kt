@@ -3,56 +3,47 @@ package com.example.oshu_android.feature.map
 import com.example.oshu_android.data.store.StoreCardResponse
 
 data class MapUiState(
-    val isLoading: Boolean = false,
-    val stores: List<StoreCardResponse> =
-        emptyList(),
-    val selectedStoreId: Long? = null,
     val searchQuery: String = "",
-    val timeSaleOnly: Boolean = false,
-    val hotPlaceOnly: Boolean = false,
+    val stores: List<StoreCardResponse> = emptyList(),
+    val selectedStoreId: Long? = null,
+    val isTimeSaleSelected: Boolean = false,
+    val isHotDealSelected: Boolean = false,
+    val isReservationSelected: Boolean = false,
+    val isLoading: Boolean = false,
     val errorMessage: String? = null,
 ) {
-    val visibleStores:
-            List<StoreCardResponse>
+    val filteredStores: List<StoreCardResponse>
         get() {
-            val keyword =
+            val normalizedQuery =
                 searchQuery.trim()
 
             return stores.filter { store ->
-                val matchesKeyword =
-                    keyword.isBlank() ||
+                val matchesQuery =
+                    normalizedQuery.isBlank() ||
                             store.name.contains(
-                                other = keyword,
+                                normalizedQuery,
                                 ignoreCase = true,
                             ) ||
                             store.category.contains(
-                                other = keyword,
+                                normalizedQuery,
                                 ignoreCase = true,
                             ) ||
                             store.address.contains(
-                                other = keyword,
+                                normalizedQuery,
                                 ignoreCase = true,
                             )
 
-                val crowdLevel =
-                    store.crowdLevel
-                        ?.uppercase()
+                val matchesTimeSale =
+                    !isTimeSaleSelected ||
+                            store.timeSaleActive
 
-                val matchesHotPlace =
-                    !hotPlaceOnly ||
-                            crowdLevel == "BUSY" ||
-                            crowdLevel == "VERY_BUSY"
-
-                matchesKeyword &&
-                        matchesHotPlace
+                matchesQuery && matchesTimeSale
             }
         }
 
-    val selectedStore:
-            StoreCardResponse?
-        get() {
-            return stores.firstOrNull {
+    val selectedStore: StoreCardResponse?
+        get() =
+            filteredStores.firstOrNull {
                 it.storeId == selectedStoreId
             }
-        }
 }
