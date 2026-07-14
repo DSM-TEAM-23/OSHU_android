@@ -149,6 +149,58 @@ class LoginViewModel(
         }
     }
 
+    fun loginWithGoogleTicket(
+        code: String,
+    ) {
+        if (code.isBlank() || _uiState.value.isLoading) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    loginError = null,
+                )
+            }
+
+            when (
+                val result = loginRepository.loginWithGoogleTicket(
+                    code = code,
+                    keepLoggedIn = _uiState.value.keepLoggedIn,
+                )
+            ) {
+                LoginResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginSuccessful = true,
+                            loginError = null,
+                        )
+                    }
+                }
+
+                LoginResult.InvalidCredentials -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            loginError = "구글 로그인 정보를 확인할 수 없습니다.",
+                        )
+                    }
+                }
+
+                is LoginResult.Failure -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            loginError = result.message,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     fun onLoginSuccessHandled() {
         _uiState.update {
             it.copy(

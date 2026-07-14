@@ -24,6 +24,11 @@ val kakaoNativeAppKey =
         "KAKAO_NATIVE_APP_KEY"
     ) ?: ""
 
+val googleAuthorizationUrl =
+    localProperties.getProperty(
+        "GOOGLE_AUTHORIZATION_URL"
+    ) ?: "https://kangyu.shop/oauth2/authorization/google"
+
 if (kakaoNativeAppKey.isBlank()) {
     throw GradleException(
         "local.properties에 KAKAO_NATIVE_APP_KEY를 설정해주세요."
@@ -56,6 +61,12 @@ android {
             "string",
             "kakao_native_app_key",
             kakaoNativeAppKey
+        )
+
+        resValue(
+            "string",
+            "google_authorization_url",
+            googleAuthorizationUrl,
         )
     }
 

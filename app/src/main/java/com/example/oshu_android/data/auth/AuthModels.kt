@@ -9,3 +9,12 @@ data class LoginResponse(
     val accessToken: String,
     val tokenType: String,
 )
+
+data class GoogleTokenExchangeRequest(
+    val code: String,
+)
+
+data class GoogleTokenExchangeResponse(
+    val accessToken: String,
+    val tokenType: String,
+)

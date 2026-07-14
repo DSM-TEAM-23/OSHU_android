@@ -1,6 +1,9 @@
 package com.example.oshu_android.feature.auth.login
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,20 +38,30 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,6 +71,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.oshu_android.R
+import com.example.oshu_android.data.auth.GoogleOAuthCallbackResult
+import com.example.oshu_android.data.auth.LocalGoogleOAuthCallbackIntake
 
 @Composable
 fun LoginRoute(
@@ -67,6 +82,37 @@ fun LoginRoute(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val googleOAuthCallbackIntake = LocalGoogleOAuthCallbackIntake.current
+    val googleOAuthCallback by googleOAuthCallbackIntake.callbacks.collectAsState()
+    val context = LocalContext.current
+    val googleAuthorizationUrl = stringResource(
+        R.string.google_authorization_url,
+    )
+    var googleAuthorizationError by rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(googleOAuthCallback) {
+        when (val callback = googleOAuthCallback) {
+            is GoogleOAuthCallbackResult.Success -> {
+                googleOAuthCallbackIntake.consume()
+                viewModel.loginWithGoogleTicket(callback.code)
+            }
+
+            GoogleOAuthCallbackResult.Failure.AuthorizationDenied -> {
+                googleOAuthCallbackIntake.consume()
+                googleAuthorizationError = "구글 로그인이 취소되었거나 실패했습니다. 다시 시도해주세요."
+            }
+
+            GoogleOAuthCallbackResult.Failure.InvalidCallback,
+            GoogleOAuthCallbackResult.Failure.InvalidState -> {
+                googleOAuthCallbackIntake.consume()
+                googleAuthorizationError = "구글 로그인 정보를 확인할 수 없습니다. 다시 시도해주세요."
+            }
+
+            null -> Unit
+        }
+    }
 
     LaunchedEffect(
         uiState.isLoginSuccessful
@@ -88,6 +134,28 @@ fun LoginRoute(
         onKeepLoggedInChanged =
             viewModel::onKeepLoggedInChanged,
         onLoginClick = viewModel::login,
+        onGoogleLoginClick = {
+            if (!uiState.isLoading) {
+                googleAuthorizationError = when (
+                    launchGoogleAuthorization(
+                        authorizationUrl = googleAuthorizationUrl,
+                        launch = { request ->
+                            context.startActivity(
+                                Intent(
+                                    request.action,
+                                    Uri.parse(request.uri),
+                                ),
+                            )
+                        },
+                    )
+                ) {
+                    GoogleAuthorizationLaunchResult.Launched -> null
+                    GoogleAuthorizationLaunchResult.InvalidConfiguration ->
+                        "Google 로그인을 준비할 수 없습니다. 잠시 후 다시 시도해주세요."
+                }
+            }
+        },
+        googleAuthorizationError = googleAuthorizationError,
         onSignUpClick = onSignUpClick,
         modifier = modifier,
     )
@@ -102,6 +170,8 @@ fun LoginScreen(
     onPasswordVisibilityClick: () -> Unit,
     onKeepLoggedInChanged: (Boolean) -> Unit,
     onLoginClick: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
+    googleAuthorizationError: String?,
     onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -423,7 +493,57 @@ fun LoginScreen(
             }
 
             Spacer(
-                modifier = Modifier.height(18.dp)
+                modifier = Modifier.height(12.dp)
+            )
+
+            OutlinedButton(
+                onClick = onGoogleLoginClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics {
+                        contentDescription = "Google로 계속하기"
+                    },
+                enabled = !uiState.isLoading,
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = colorScheme.outline.copy(
+                        alpha = 0.72f,
+                    ),
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color(0xFFF1F3F4),
+                    contentColor = colorScheme.onSurface,
+                    disabledContainerColor = Color(0xFFF1F3F4).copy(
+                        alpha = 0.58f,
+                    ),
+                    disabledContentColor = colorScheme.onSurface.copy(
+                        alpha = 0.5f,
+                    ),
+                ),
+            ) {
+                GoogleMark()
+
+                Spacer(
+                    modifier = Modifier.width(8.dp),
+                )
+
+                Text(
+                    text = "Google로 계속하기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
+
+            googleAuthorizationError?.let { message ->
+                ErrorText(
+                    message = message,
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
             )
 
             Row(
@@ -464,6 +584,63 @@ fun LoginScreen(
                 modifier = Modifier.height(32.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun GoogleMark(
+    modifier: Modifier = Modifier,
+) {
+    Canvas(
+        modifier = modifier.size(20.dp),
+    ) {
+        val strokeWidth = 3.3.dp.toPx()
+        val inset = strokeWidth / 2f
+        val arcSize = size.minDimension - strokeWidth
+
+        drawArc(
+            color = Color(0xFF4285F4),
+            startAngle = -42f,
+            sweepAngle = 95f,
+            useCenter = false,
+            topLeft = Offset(inset, inset),
+            size = androidx.compose.ui.geometry.Size(arcSize, arcSize),
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt),
+        )
+        drawArc(
+            color = Color(0xFFEA4335),
+            startAngle = -137f,
+            sweepAngle = 95f,
+            useCenter = false,
+            topLeft = Offset(inset, inset),
+            size = androidx.compose.ui.geometry.Size(arcSize, arcSize),
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt),
+        )
+        drawArc(
+            color = Color(0xFFFBBC05),
+            startAngle = 128f,
+            sweepAngle = 94f,
+            useCenter = false,
+            topLeft = Offset(inset, inset),
+            size = androidx.compose.ui.geometry.Size(arcSize, arcSize),
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt),
+        )
+        drawArc(
+            color = Color(0xFF34A853),
+            startAngle = 222f,
+            sweepAngle = 54f,
+            useCenter = false,
+            topLeft = Offset(inset, inset),
+            size = androidx.compose.ui.geometry.Size(arcSize, arcSize),
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Butt),
+        )
+        drawLine(
+            color = Color(0xFF4285F4),
+            start = Offset(size.width * 0.55f, size.height * 0.5f),
+            end = Offset(size.width * 0.98f, size.height * 0.5f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Butt,
+        )
     }
 }
 

@@ -11,6 +11,11 @@ interface AuthApi {
         @Body request: LoginRequest,
     ): Response<LoginResponse>
 
+    @POST("auth/google/exchange")
+    suspend fun exchangeGoogleTicket(
+        @Body request: GoogleTokenExchangeRequest,
+    ): Response<GoogleTokenExchangeResponse>
+
     @POST("auth/signup")
     suspend fun signUp(
         @Body request: SignUpRequest,
