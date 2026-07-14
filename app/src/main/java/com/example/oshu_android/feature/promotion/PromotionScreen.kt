@@ -36,19 +36,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.oshu_android.R
 import com.example.oshu_android.feature.common.MainBottomNavigation
 import com.example.oshu_android.feature.common.MainDestination
-
-private val PromotionBackground = Color(0xFFFFF8F9)
-private val PromotionPrimary = Color(0xFFFF8A9C)
-private val PromotionBorder = Color(0xFFFFD6DE)
-private val PromotionBrown = Color(0xFF704B50)
-private val PromotionHint = Color(0xFF969198)
+import com.example.oshu_android.ui.theme.OshuBorder
+import com.example.oshu_android.ui.theme.OshuHint
+import com.example.oshu_android.ui.theme.OshuPink
+import com.example.oshu_android.ui.theme.OshuPinkLight
+import com.example.oshu_android.ui.theme.OshuTextPrimary
+import com.example.oshu_android.ui.theme.OshuTextSecondary
+import com.example.oshu_android.ui.theme.OshuWhite
 
 @Composable
 fun PromotionRoute(
@@ -87,7 +87,7 @@ fun PromotionScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = PromotionBackground,
+        containerColor = OshuPinkLight,
         bottomBar = {
             MainBottomNavigation(
                 selectedDestination = MainDestination.PROMOTION,
@@ -219,7 +219,7 @@ private fun PromotionHeader() {
                 top = 18.dp,
                 bottom = 8.dp,
             ),
-        color = PromotionPrimary,
+        color = OshuPink,
         fontSize = 24.sp,
         fontWeight = FontWeight.ExtraBold,
     )
@@ -248,7 +248,7 @@ private fun PromotionHero(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
+                        colors = listOf(
                             Color.Transparent,
                             Color.Black.copy(alpha = 0.64f),
                         ),
@@ -262,7 +262,7 @@ private fun PromotionHero(
                 .padding(18.dp),
         ) {
             Surface(
-                color = PromotionPrimary,
+                color = OshuPink,
                 shape = RoundedCornerShape(7.dp),
             ) {
                 Text(
@@ -271,7 +271,7 @@ private fun PromotionHero(
                         horizontal = 10.dp,
                         vertical = 6.dp,
                     ),
-                    color = Color.White,
+                    color = OshuWhite,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -283,7 +283,7 @@ private fun PromotionHero(
 
             Text(
                 text = promotion.title,
-                color = Color.White,
+                color = OshuWhite,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -294,7 +294,7 @@ private fun PromotionHero(
                 text = promotion.storeName.ifBlank {
                     promotion.content
                 },
-                color = Color.White.copy(alpha = 0.9f),
+                color = OshuWhite.copy(alpha = 0.9f),
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -311,7 +311,9 @@ private fun PromotionCategoryTabs(
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        items(PromotionCategory.entries) { category ->
+        items(
+            items = PromotionCategory.values().toList(),
+        ) { category ->
             val selected = category == selectedCategory
 
             Surface(
@@ -321,13 +323,13 @@ private fun PromotionCategoryTabs(
                         onCategorySelected(category)
                     },
                 shape = RoundedCornerShape(23.dp),
-                color = if (selected) PromotionPrimary else Color.White,
+                color = if (selected) OshuPink else OshuWhite,
                 border = if (selected) {
                     null
                 } else {
                     BorderStroke(
                         width = 1.dp,
-                        color = PromotionBorder,
+                        color = OshuBorder,
                     )
                 },
             ) {
@@ -339,7 +341,7 @@ private fun PromotionCategoryTabs(
                 ) {
                     Text(
                         text = category.label,
-                        color = if (selected) Color.White else PromotionBrown,
+                        color = if (selected) OshuWhite else OshuTextPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                     )
@@ -358,7 +360,7 @@ private fun PromotionLargeCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        color = Color.White,
+        color = OshuWhite,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column {
@@ -378,7 +380,7 @@ private fun PromotionLargeCard(
             ) {
                 Text(
                     text = promotion.title,
-                    color = Color(0xFF222222),
+                    color = OshuTextPrimary,
                     fontSize = 21.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -393,16 +395,14 @@ private fun PromotionLargeCard(
                     text = promotion.content.ifBlank {
                         promotion.storeName
                     },
-                    color = PromotionBrown,
+                    color = OshuTextSecondary,
                     fontSize = 14.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
 
                 promotion.periodLabel()
-                    .takeIf {
-                        it.isNotBlank()
-                    }
+                    .takeIf { it.isNotBlank() }
                     ?.let { period ->
                         Spacer(
                             modifier = Modifier.height(8.dp),
@@ -410,7 +410,7 @@ private fun PromotionLargeCard(
 
                         Text(
                             text = period,
-                            color = PromotionPrimary,
+                            color = OshuPink,
                             fontSize = 12.sp,
                         )
                     }
@@ -427,7 +427,7 @@ private fun PromotionSmallCard(
 ) {
     Surface(
         modifier = modifier.clickable(onClick = onClick),
-        color = Color.White,
+        color = OshuWhite,
         shape = RoundedCornerShape(14.dp),
     ) {
         Column {
@@ -447,7 +447,7 @@ private fun PromotionSmallCard(
             ) {
                 Text(
                     text = promotion.title,
-                    color = Color(0xFF222222),
+                    color = OshuTextPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -460,7 +460,7 @@ private fun PromotionSmallCard(
 
                 Text(
                     text = promotion.storeName,
-                    color = PromotionBrown,
+                    color = OshuTextSecondary,
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -479,7 +479,7 @@ private fun PromotionHorizontalCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        color = Color.White,
+        color = OshuWhite,
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(
@@ -501,7 +501,7 @@ private fun PromotionHorizontalCard(
             ) {
                 Text(
                     text = promotion.badgeLabel(),
-                    color = PromotionPrimary,
+                    color = OshuPink,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -512,7 +512,7 @@ private fun PromotionHorizontalCard(
 
                 Text(
                     text = promotion.title,
-                    color = Color(0xFF222222),
+                    color = OshuTextPrimary,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -523,7 +523,7 @@ private fun PromotionHorizontalCard(
                     text = promotion.storeName.ifBlank {
                         promotion.content
                     },
-                    color = PromotionBrown,
+                    color = OshuTextSecondary,
                     fontSize = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -544,7 +544,7 @@ private fun PromotionImage(
             .clip(shape)
             .background(
                 Brush.linearGradient(
-                    listOf(
+                    colors = listOf(
                         Color(0xFFB87559),
                         Color(0xFFF2C78F),
                     ),
@@ -552,7 +552,7 @@ private fun PromotionImage(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (promotion.imageUrl != null) {
+        if (!promotion.imageUrl.isNullOrBlank()) {
             AsyncImage(
                 model = promotion.imageUrl,
                 contentDescription = promotion.title,
@@ -561,9 +561,11 @@ private fun PromotionImage(
             )
         } else {
             Icon(
-                painter = painterResource(R.drawable.ic_hot_deal),
+                painter = painterResource(
+                    id = R.drawable.ic_hot_deal,
+                ),
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.74f),
+                tint = OshuWhite.copy(alpha = 0.74f),
                 modifier = Modifier.size(46.dp),
             )
         }
@@ -572,7 +574,7 @@ private fun PromotionImage(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(10.dp),
-            color = PromotionPrimary,
+            color = OshuPink,
             shape = RoundedCornerShape(7.dp),
         ) {
             Text(
@@ -581,7 +583,7 @@ private fun PromotionImage(
                     horizontal = 8.dp,
                     vertical = 5.dp,
                 ),
-                color = Color.White,
+                color = OshuWhite,
                 fontSize = 11.sp,
             )
         }
@@ -597,7 +599,7 @@ private fun LoadingContent() {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(
-            color = PromotionPrimary,
+            color = OshuPink,
         )
     }
 }
@@ -611,11 +613,11 @@ private fun ErrorContent(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onRefresh),
-        color = Color.White,
+        color = OshuWhite,
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             width = 1.dp,
-            color = PromotionBorder,
+            color = OshuBorder,
         ),
     ) {
         Column(
@@ -624,7 +626,7 @@ private fun ErrorContent(
         ) {
             Text(
                 text = message,
-                color = PromotionBrown,
+                color = OshuTextSecondary,
                 fontSize = 14.sp,
             )
 
@@ -634,7 +636,7 @@ private fun ErrorContent(
 
             Text(
                 text = "다시 시도",
-                color = PromotionPrimary,
+                color = OshuPink,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -652,8 +654,30 @@ private fun EmptyContent() {
     ) {
         Text(
             text = "진행 중인 프로모션이 없습니다.",
-            color = PromotionHint,
+            color = OshuHint,
             fontSize = 15.sp,
         )
+    }
+}
+
+private fun PromotionItem.badgeLabel(): String {
+    return when (type.uppercase()) {
+        "TIME_SALE" -> "마감 세일"
+        "HOT_DEAL" -> "핫딜"
+        "OPEN_EVENT" -> "그랜드 오픈"
+        "EVENT" -> "진행 중"
+        else -> "진행 중"
+    }
+}
+
+private fun PromotionItem.periodLabel(): String {
+    val start = startAt.orEmpty()
+    val end = endAt.orEmpty()
+
+    return when {
+        start.isNotBlank() && end.isNotBlank() -> "$start ~ $end"
+        end.isNotBlank() -> "종료 $end"
+        start.isNotBlank() -> "시작 $start"
+        else -> ""
     }
 }
