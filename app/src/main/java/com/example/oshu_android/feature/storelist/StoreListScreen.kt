@@ -145,60 +145,52 @@ fun StoreListScreen(
             )
         },
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            StoreListHeader()
+            item {
+                StoreListHeader()
+            }
 
-            StoreListSearchField(
-                value = uiState.searchQuery,
-                onValueChange = onQueryChanged,
-                modifier = Modifier.padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 10.dp,
-                ),
-            )
+            item {
+                StoreListSearchField(
+                    value = uiState.searchQuery,
+                    onValueChange = onQueryChanged,
+                    modifier = Modifier.padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        top = 10.dp,
+                    ),
+                )
+            }
 
-            StoreCategoryTabs(
-                selectedCategory = uiState.selectedCategory,
-                onCategorySelected = onCategorySelected,
-                modifier = Modifier.padding(
-                    top = 18.dp,
-                ),
-            )
+            item {
+                StoreCategoryTabs(
+                    selectedCategory = uiState.selectedCategory,
+                    onCategorySelected = onCategorySelected,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 14.dp,
-                    bottom = 20.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(
-                    items = uiState.filteredStores,
-                    key = { store ->
-                        store.storeId
-                    },
-                ) { store ->
-                    StoreListCard(
-                        store = store,
-                        currentLocation = currentLocation,
-                        onClick = {
-                            onStoreDetailClick(store.storeId)
-                        },
-                    )
-                }
+            items(
+                items = uiState.filteredStores,
+                key = { store -> store.storeId },
+            ) { store ->
+                StoreListCard(
+                    store = store,
+                    currentLocation = currentLocation,
+                    onClick = { onStoreDetailClick(store.storeId) },
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+            }
 
-                if (uiState.filteredStores.isEmpty()) {
-                    item {
-                        EmptyStoreList()
-                    }
+            if (uiState.filteredStores.isEmpty()) {
+                item {
+                    EmptyStoreList()
                 }
             }
         }
@@ -355,9 +347,10 @@ private fun StoreListCard(
     store: StoreCardResponse,
     currentLocation: Location?,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         color = Color(0xFFFFF7F8),
