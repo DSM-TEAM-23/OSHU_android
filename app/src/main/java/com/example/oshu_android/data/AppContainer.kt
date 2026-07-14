@@ -12,56 +12,52 @@ import com.example.oshu_android.feature.onboarding.OnboardingPreferences
 class AppContainer(
     context: Context,
 ) {
-    private val applicationContext =
-        context.applicationContext
+    private val applicationContext = context.applicationContext
 
-    private val authApi =
-        AuthModule.provideAuthApi(
-            applicationContext,
-        )
+    private val authApi = AuthModule.provideAuthApi(
+        applicationContext,
+    )
 
-    private val sessionStore: SessionStore =
-        PreferencesSessionStore(
-            context = applicationContext,
-        )
+    private val sessionStore: SessionStore = PreferencesSessionStore(
+        context = applicationContext,
+    )
 
-    val onboardingPreferences =
-        OnboardingPreferences(
-            context = applicationContext,
-        )
+    val onboardingPreferences = OnboardingPreferences(
+        context = applicationContext,
+    )
 
-    val loginRepository: LoginRepository =
-        LoginRepositoryImpl(
-            authApi = authApi,
-            sessionStore = sessionStore,
-        )
+    val loginRepository: LoginRepository = LoginRepositoryImpl(
+        authApi = authApi,
+        sessionStore = sessionStore,
+    )
 
-    val signUpRepository =
-        SignUpRepository(
-            authApi = authApi,
-        )
+    val signUpRepository = SignUpRepository(
+        authApi = authApi,
+    )
 
-    val storeRepository =
-        StoreModule.provideStoreRepository(
-            applicationContext,
-        )
+    val storeRepository = StoreModule.provideStoreRepository(
+        context = applicationContext,
+        accessTokenProvider = sessionStore::getAccessToken,
+    )
 }
 
 private class PreferencesSessionStore(
     context: Context,
 ) : SessionStore {
 
-    private val preferences =
-        context.getSharedPreferences(
-            PREFERENCES_NAME,
-            Context.MODE_PRIVATE,
-        )
+    private val preferences = context.getSharedPreferences(
+        PREFERENCES_NAME,
+        Context.MODE_PRIVATE,
+    )
 
-    private var sessionAccessToken: String? =
-        preferences.getString(
-            ACCESS_TOKEN_KEY,
-            null,
-        )
+    private var sessionAccessToken: String? = preferences.getString(
+        ACCESS_TOKEN_KEY,
+        null,
+    )
+
+    override fun getAccessToken(): String? {
+        return sessionAccessToken
+    }
 
     override suspend fun saveAccessToken(
         accessToken: String,
@@ -70,16 +66,14 @@ private class PreferencesSessionStore(
         sessionAccessToken = accessToken
 
         if (persist) {
-            preferences
-                .edit()
+            preferences.edit()
                 .putString(
                     ACCESS_TOKEN_KEY,
                     accessToken,
                 )
                 .apply()
         } else {
-            preferences
-                .edit()
+            preferences.edit()
                 .remove(ACCESS_TOKEN_KEY)
                 .apply()
         }
@@ -88,17 +82,13 @@ private class PreferencesSessionStore(
     override suspend fun clear() {
         sessionAccessToken = null
 
-        preferences
-            .edit()
+        preferences.edit()
             .remove(ACCESS_TOKEN_KEY)
             .apply()
     }
 
     private companion object {
-        const val PREFERENCES_NAME =
-            "oshu_session"
-
-        const val ACCESS_TOKEN_KEY =
-            "access_token"
+        const val PREFERENCES_NAME = "oshu_session"
+        const val ACCESS_TOKEN_KEY = "access_token"
     }
 }
