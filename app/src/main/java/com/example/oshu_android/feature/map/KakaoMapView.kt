@@ -8,7 +8,6 @@ import android.location.LocationManager
 import android.location.LocationListener
 import android.util.Log
 import android.os.Looper
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,6 +34,7 @@ import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
 import com.kakao.vectormap.label.LabelOptions
+import com.kakao.vectormap.label.LabelStyle
 
 @Composable
 fun KakaoMapView(
@@ -53,6 +54,14 @@ fun KakaoMapView(
     val currentOnStoreClick by rememberUpdatedState(onStoreClick)
     val currentOnMapClick by rememberUpdatedState(onMapClick)
     val currentOnMapError by rememberUpdatedState(onMapError)
+    val storeMarkerBitmap = remember(context) {
+        requireNotNull(
+            ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_marker_pink,
+            ),
+        ).toBitmap()
+    }
 
     var kakaoMap by remember {
         mutableStateOf<KakaoMap?>(null)
@@ -243,7 +252,10 @@ fun KakaoMapView(
                     "store_${store.storeId}",
                     LatLng.from(latitude, longitude),
                 )
-                    .setStyles(markerResourceForCategory(store.category))
+                    .setStyles(
+                        LabelStyle.from(storeMarkerBitmap)
+                            .setAnchorPoint(0.5f, 1f),
+                    )
                     .setClickable(true)
                     .setTag(store.storeId)
                     .setRank(rank),
@@ -273,16 +285,6 @@ private fun getLastKnownLocation(context: Context): Location? {
         .maxByOrNull { it.time }
 }
 
-@DrawableRes
-private fun markerResourceForCategory(category: String): Int {
-    return when (category.trim().replace(" ", "").lowercase()) {
-        "베이커리", "bakery" -> R.drawable.ic_marker_bakery
-        "음식점", "식당", "restaurant", "food" -> R.drawable.ic_marker_food_market
-        "카페", "cafe", "coffee" -> R.drawable.ic_marker_cafe
-        "마트", "mart" -> R.drawable.ic_marker_mart
-        else -> R.drawable.ic_marker_marketplace
-    }
-}
 
 private const val NORMAL_MARKER_RANK = 0L
 private const val TIME_SALE_MARKER_RANK = 500L
