@@ -164,13 +164,6 @@ private fun StoreDetailTopBar(onBackClick: () -> Unit) {
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
-
-            IconButton(
-                onClick = {},
-                modifier = Modifier.align(Alignment.CenterEnd),
-            ) {
-                Text("↗", color = OshuTextPrimary, fontSize = 24.sp)
-            }
         }
     }
 }
