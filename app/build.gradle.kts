@@ -16,27 +16,17 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-val secretsProperties = Properties()
-val secretsPropertiesFile =
-    rootProject.file("secrets.properties")
-
-if (secretsPropertiesFile.exists()) {
-    secretsPropertiesFile.inputStream().use {
-        secretsProperties.load(it)
-    }
-}
-
 val baseUrl =
     localProperties.getProperty("BASE_URL") ?: ""
 
 val kakaoNativeAppKey =
-    secretsProperties.getProperty(
+    localProperties.getProperty(
         "KAKAO_NATIVE_APP_KEY"
     ) ?: ""
 
 if (kakaoNativeAppKey.isBlank()) {
     throw GradleException(
-        "secrets.properties에 KAKAO_NATIVE_APP_KEY를 설정해주세요."
+        "local.properties에 KAKAO_NATIVE_APP_KEY를 설정해주세요."
     )
 }
 
