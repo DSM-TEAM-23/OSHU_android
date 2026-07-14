@@ -544,36 +544,32 @@ private fun PromotionImage(
     modifier: Modifier,
     shape: RoundedCornerShape,
 ) {
+    val imageUrl = promotion.imageUrl?.takeIf { it.isNotBlank() }
+        ?: promotionFallbackImage(promotion)
+
     Box(
         modifier = modifier
-            .clip(shape)
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFB87559),
-                        Color(0xFFF2C78F),
+            .clip(shape),
+    ) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = promotion.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.68f),
+                        ),
                     ),
                 ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (!promotion.imageUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = promotion.imageUrl,
-                contentDescription = promotion.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Icon(
-                painter = painterResource(
-                    id = R.drawable.ic_hot_deal,
-                ),
-                contentDescription = null,
-                tint = OshuWhite.copy(alpha = 0.74f),
-                modifier = Modifier.size(46.dp),
-            )
-        }
+        )
 
         Surface(
             modifier = Modifier
@@ -592,6 +588,15 @@ private fun PromotionImage(
                 fontSize = 11.sp,
             )
         }
+    }
+}
+
+private fun promotionFallbackImage(promotion: PromotionItem): String {
+    return when (promotion.category) {
+        PromotionCategory.CAFE -> "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&q=85"
+        PromotionCategory.RESTAURANT -> "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=1200&q=85"
+        PromotionCategory.GROCERY -> "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=1200&q=85"
+        PromotionCategory.ALL -> "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=85"
     }
 }
 
