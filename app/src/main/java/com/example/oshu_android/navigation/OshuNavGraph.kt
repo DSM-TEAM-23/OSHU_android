@@ -1,7 +1,15 @@
 package com.example.oshu_android.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,26 +22,24 @@ import com.example.oshu_android.feature.map.MapRoute
 import com.example.oshu_android.feature.map.MapViewModel
 import com.example.oshu_android.feature.onboarding.OnboardingScreen
 import com.example.oshu_android.feature.onboarding.SplashScreen
+import com.example.oshu_android.feature.storelist.StoreListRoute
+import com.example.oshu_android.feature.storelist.StoreListViewModel
 
 @Composable
 fun OshuNavGraph(
     appContainer: AppContainer,
 ) {
-    val navController =
-        rememberNavController()
+    val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination =
-            OshuRoutes.SPLASH,
+        startDestination = OshuRoutes.SPLASH,
     ) {
         composable(
             route = OshuRoutes.SPLASH,
         ) {
             SplashScreen(
-                onboardingPreferences =
-                    appContainer
-                        .onboardingPreferences,
+                onboardingPreferences = appContainer.onboardingPreferences,
                 onOnboardingRequired = {
                     navController.navigate(
                         OshuRoutes.ONBOARDING,
@@ -67,9 +73,7 @@ fun OshuNavGraph(
             route = OshuRoutes.ONBOARDING,
         ) {
             OnboardingScreen(
-                onboardingPreferences =
-                    appContainer
-                        .onboardingPreferences,
+                onboardingPreferences = appContainer.onboardingPreferences,
                 onFinished = {
                     navController.navigate(
                         OshuRoutes.LOGIN,
@@ -89,16 +93,11 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.LOGIN,
         ) {
-            val loginViewModel:
-                    LoginViewModel =
-                viewModel(
-                    factory =
-                        LoginViewModel.Factory(
-                            loginRepository =
-                                appContainer
-                                    .loginRepository,
-                        ),
-                )
+            val loginViewModel: LoginViewModel = viewModel(
+                factory = LoginViewModel.Factory(
+                    loginRepository = appContainer.loginRepository,
+                ),
+            )
 
             LoginRoute(
                 viewModel = loginViewModel,
@@ -128,16 +127,11 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.SIGN_UP,
         ) {
-            val signUpViewModel:
-                    SignUpViewModel =
-                viewModel(
-                    factory =
-                        SignUpViewModel.Factory(
-                            signUpRepository =
-                                appContainer
-                                    .signUpRepository,
-                        ),
-                )
+            val signUpViewModel: SignUpViewModel = viewModel(
+                factory = SignUpViewModel.Factory(
+                    signUpRepository = appContainer.signUpRepository,
+                ),
+            )
 
             SignUpRoute(
                 viewModel = signUpViewModel,
@@ -163,20 +157,92 @@ fun OshuNavGraph(
         composable(
             route = OshuRoutes.HOME,
         ) {
-            val mapViewModel:
-                    MapViewModel =
-                viewModel(
-                    factory =
-                        MapViewModel.Factory(
-                            storeRepository =
-                                appContainer
-                                    .storeRepository,
-                        ),
-                )
+            val mapViewModel: MapViewModel = viewModel(
+                factory = MapViewModel.Factory(
+                    storeRepository = appContainer.storeRepository,
+                ),
+            )
 
             MapRoute(
                 viewModel = mapViewModel,
+                onListClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.STORE_LIST,
+                    )
+                },
+                onPromotionClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.PROMOTION,
+                    )
+                },
             )
         }
+
+        composable(
+            route = OshuRoutes.STORE_LIST,
+        ) {
+            val mapViewModel: MapViewModel = viewModel(
+                factory = MapViewModel.Factory(
+                    storeRepository = appContainer.storeRepository,
+                ),
+            )
+
+            val mapUiState by mapViewModel.uiState.collectAsState()
+
+            val storeListViewModel: StoreListViewModel = viewModel()
+
+            StoreListRoute(
+                viewModel = storeListViewModel,
+                stores = mapUiState.filteredStores,
+                onMapClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.HOME,
+                    )
+                },
+                onPromotionClick = {
+                    navController.navigateToMainScreen(
+                        OshuRoutes.PROMOTION,
+                    )
+                },
+                onStoreDetailClick = {
+                    navController.navigate(
+                        "store_detail/$it",
+                    )
+                },
+            )
+        }
+
+        composable(
+            route = OshuRoutes.PROMOTION,
+        ) {
+            PromotionPlaceholderScreen()
+        }
+    }
+}
+
+@Composable
+private fun PromotionPlaceholderScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "프로모션 준비 중",
+        )
+    }
+}
+
+private fun NavController.navigateToMainScreen(
+    route: String,
+) {
+    navigate(route) {
+        popUpTo(
+            OshuRoutes.HOME,
+        ) {
+            saveState = true
+        }
+
+        launchSingleTop = true
+        restoreState = true
     }
 }
