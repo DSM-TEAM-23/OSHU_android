@@ -1,7 +1,16 @@
 package com.example.oshu_android.feature.storedetail
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.net.Uri
+import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,8 +37,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +58,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.example.oshu_android.data.store.toOpeningHoursLabel
 import com.example.oshu_android.R
@@ -57,6 +73,11 @@ import com.example.oshu_android.ui.theme.OshuPinkLight
 import com.example.oshu_android.ui.theme.OshuTextPrimary
 import com.example.oshu_android.ui.theme.OshuTextSecondary
 import com.example.oshu_android.ui.theme.OshuWhite
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+import kotlin.math.roundToInt
 
 private val DetailBackground = Color(0xFFFFF8F9)
 
@@ -67,12 +88,78 @@ fun StoreDetailRoute(
     onInquiryClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var currentLocation by remember { mutableStateOf<Location?>(null) }
+    var hasLocationPermission by remember { mutableStateOf(false) }
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            hasLocationPermission = true
+            currentLocation = getLastKnownLocation(context)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val fineGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineGranted || coarseGranted) {
+            hasLocationPermission = true
+            currentLocation = getLastKnownLocation(context)
+        } else {
+            locationLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
+    }
+
+    DisposableEffect(hasLocationPermission) {
+        if (!hasLocationPermission) {
+            onDispose { }
+        } else {
+            val locationManager = context.getSystemService(
+                Context.LOCATION_SERVICE,
+            ) as LocationManager
+            val listener = LocationListener { location ->
+                currentLocation = location
+            }
+
+            locationManager.getProviders(true).forEach { provider ->
+                runCatching {
+                    locationManager.requestLocationUpdates(
+                        provider,
+                        2_000L,
+                        5f,
+                        listener,
+                        Looper.getMainLooper(),
+                    )
+                }
+            }
+
+            onDispose {
+                runCatching {
+                    locationManager.removeUpdates(listener)
+                }
+            }
+        }
+    }
 
     StoreDetailScreen(
         uiState = uiState,
         onBackClick = onBackClick,
         onRetry = viewModel::refresh,
         onInquiryClick = onInquiryClick,
+        currentLocation = currentLocation,
     )
 }
 
@@ -82,6 +169,7 @@ fun StoreDetailScreen(
     onBackClick: () -> Unit,
     onRetry: () -> Unit,
     onInquiryClick: () -> Unit,
+    currentLocation: Location? = null,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -120,6 +208,7 @@ fun StoreDetailScreen(
             uiState.store != null -> {
                 StoreDetailContent(
                     store = uiState.store,
+                    currentLocation = currentLocation,
                     modifier = Modifier.padding(paddingValues),
                 )
             }
@@ -171,8 +260,23 @@ private fun StoreDetailTopBar(onBackClick: () -> Unit) {
 @Composable
 private fun StoreDetailContent(
     store: StoreDetailResponse,
+    currentLocation: Location?,
     modifier: Modifier = Modifier,
 ) {
+    var currentTimeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val timeSales = activeTimeSales(store.timeSales, currentTimeMillis)
+    val remainingText = timeSales
+        .mapNotNull { timeSale -> timeSale.endAt.toMillis() }
+        .minOrNull()
+        ?.let { endAtMillis -> timeRemainingText(endAtMillis - currentTimeMillis) }
+
+    LaunchedEffect(store.timeSales) {
+        while (true) {
+            currentTimeMillis = System.currentTimeMillis()
+            delay(1_000L)
+        }
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp),
@@ -183,21 +287,20 @@ private fun StoreDetailContent(
         }
 
         item {
-            StoreDetailInfo(store = store)
+            StoreDetailInfo(
+                store = store,
+                distanceLabel = storeDistanceLabel(store, currentLocation),
+            )
         }
 
-        if (store.timeSales.isNotEmpty()) {
+        if (timeSales.isNotEmpty()) {
             item {
-                Text(
-                    text = "실시간 타임 세일",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    color = OshuTextPrimary,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                TimeSaleSectionHeader(
+                    remainingText = remainingText,
                 )
             }
 
-            items(store.timeSales) { timeSale ->
+            items(timeSales) { timeSale ->
                 TimeSaleCard(timeSale = timeSale)
             }
         }
@@ -237,8 +340,12 @@ private fun StoreDetailHero(store: StoreDetailResponse) {
 }
 
 @Composable
-private fun StoreDetailInfo(store: StoreDetailResponse) {
+private fun StoreDetailInfo(
+    store: StoreDetailResponse,
+    distanceLabel: String?,
+) {
     val openingHours = store.openingHours.toOpeningHoursLabel()
+    val locationLabel = store.locationLabel(distanceLabel)
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -286,7 +393,7 @@ private fun StoreDetailInfo(store: StoreDetailResponse) {
         )
 
         Text(
-            text = store.address,
+            text = locationLabel,
             color = OshuTextSecondary,
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 6.dp),
@@ -303,6 +410,33 @@ private fun StoreDetailInfo(store: StoreDetailResponse) {
         }
 
         CrowdCard(status = store.crowdStatus)
+    }
+}
+
+@Composable
+private fun TimeSaleSectionHeader(remainingText: String?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "실시간 타임 세일",
+            color = OshuTextPrimary,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+        )
+
+        remainingText?.let {
+            Text(
+                text = "종료까지 $it",
+                color = OshuPink,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 
@@ -333,6 +467,10 @@ private fun CrowdCard(status: CrowdStatusResponse?) {
 
 @Composable
 private fun TimeSaleCard(timeSale: TimeSaleResponse) {
+    val discountRate = timeSale.originalPrice
+        .takeIf { it > 0 && it > timeSale.salePrice }
+        ?.let { ((it - timeSale.salePrice).toLong() * 100 / it).toInt() }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -360,36 +498,136 @@ private fun TimeSaleCard(timeSale: TimeSaleResponse) {
                     .padding(start = 12.dp),
             ) {
                 Text(timeSale.productName, color = OshuTextPrimary, fontSize = 14.sp)
-                Row(
+                Text(
+                    text = String.format(Locale.KOREA, "₩%,d", timeSale.originalPrice),
+                    color = OshuTextSecondary,
+                    fontSize = 13.sp,
+                    textDecoration = TextDecoration.LineThrough,
                     modifier = Modifier.padding(top = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.End,
+            ) {
+                discountRate?.let {
                     Text(
-                        text = "₩${timeSale.originalPrice}",
-                        color = OshuTextSecondary,
-                        fontSize = 13.sp,
-                        textDecoration = TextDecoration.LineThrough,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "₩${timeSale.salePrice}",
+                        text = "${it}%",
                         color = OshuPink,
-                        fontSize = 17.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
-            }
-
-            Surface(color = OshuPink, shape = RoundedCornerShape(6.dp)) {
                 Text(
-                    text = "타임 세일",
-                    color = OshuWhite,
-                    fontSize = 10.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    text = String.format(Locale.KOREA, "₩%,d", timeSale.salePrice),
+                    color = OshuPink,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
     }
+}
+
+internal fun activeTimeSales(
+    timeSales: List<TimeSaleResponse>,
+    nowMillis: Long,
+): List<TimeSaleResponse> {
+    return timeSales.filter { timeSale ->
+        val startAtMillis = timeSale.startAt.toMillis() ?: return@filter false
+        val endAtMillis = timeSale.endAt.toMillis() ?: return@filter false
+
+        nowMillis in startAtMillis..<endAtMillis
+    }
+}
+
+internal fun timeRemainingText(remainingMillis: Long): String {
+    val totalSeconds = (remainingMillis.coerceAtLeast(0L) / 1_000L).toInt()
+    val hours = totalSeconds / 3_600
+    val minutes = (totalSeconds % 3_600) / 60
+    val seconds = totalSeconds % 60
+
+    return if (hours > 0) {
+        String.format(Locale.KOREA, "%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format(Locale.KOREA, "%02d:%02d", minutes, seconds)
+    }
+}
+
+private fun String?.toMillis(): Long? {
+    val dateTime = this
+        ?.substringBefore('.')
+        ?.takeIf { it.isNotBlank() }
+        ?: return null
+
+    return runCatching {
+        SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss",
+            Locale.US,
+        ).apply {
+            timeZone = TimeZone.getTimeZone("Asia/Seoul")
+        }.parse(dateTime)?.time
+    }.getOrNull()
+}
+
+private fun StoreDetailResponse.locationLabel(distanceLabel: String?): String {
+    val addressParts = address.split(Regex("\\s+"))
+    val district = addressParts.firstOrNull { it.endsWith("구") }
+    val neighborhood = addressParts.firstOrNull {
+        it.endsWith("동") || it.endsWith("읍") || it.endsWith("면") || it.endsWith("리")
+    }
+    val area = listOfNotNull(neighborhood, district)
+        .joinToString(", ")
+        .ifBlank { address }
+
+    return listOfNotNull(area, distanceLabel?.let { "$it 거리" })
+        .joinToString(" • ")
+}
+
+private fun storeDistanceLabel(
+    store: StoreDetailResponse,
+    currentLocation: Location?,
+): String? {
+    val latitude = store.latitude ?: return null
+    val longitude = store.longitude ?: return null
+    val location = currentLocation ?: return null
+    val result = FloatArray(1)
+
+    Location.distanceBetween(
+        location.latitude,
+        location.longitude,
+        latitude,
+        longitude,
+        result,
+    )
+
+    val meters = result[0].roundToInt()
+    return if (meters >= 1_000) {
+        String.format(Locale.KOREA, "%.1fkm", meters / 1_000f)
+    } else {
+        "${meters}m"
+    }
+}
+
+private fun getLastKnownLocation(context: Context): Location? {
+    val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val fineGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarseGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (!fineGranted && !coarseGranted) return null
+
+    return manager.getProviders(true)
+        .asSequence()
+        .mapNotNull { provider ->
+            runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
+        }
+        .maxByOrNull { it.time }
 }
 
 @Composable
@@ -457,7 +695,9 @@ private fun StoreDetailBottomBar(
         ) {
             Button(
                 onClick = onDirectionsClick,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = OshuPink),
                 border = androidx.compose.foundation.BorderStroke(1.dp, OshuPink),
                 shape = RoundedCornerShape(12.dp),
@@ -472,7 +712,9 @@ private fun StoreDetailBottomBar(
             }
             Button(
                 onClick = onInquiryClick,
-                modifier = Modifier.weight(1.4f),
+                modifier = Modifier
+                    .weight(1.4f)
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = OshuPink),
                 shape = RoundedCornerShape(12.dp),
             ) {
