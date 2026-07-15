@@ -102,6 +102,9 @@ fun KakaoMapView(
     var kakaoMap by remember {
         mutableStateOf<KakaoMap?>(null)
     }
+    var previousSelectedStoreId by remember {
+        mutableStateOf<Long?>(null)
+    }
 
     var currentLocation by remember {
         mutableStateOf<Location?>(null)
@@ -250,6 +253,30 @@ fun KakaoMapView(
         },
         modifier = modifier,
     )
+
+    LaunchedEffect(kakaoMap, selectedStoreId) {
+        val previousStoreId = previousSelectedStoreId
+        val selectedStore = stores.firstOrNull { it.storeId == selectedStoreId }
+
+        if (
+            previousStoreId != null &&
+                previousStoreId != selectedStoreId &&
+                selectedStore != null
+        ) {
+            val latitude = selectedStore.latitude
+            val longitude = selectedStore.longitude
+
+            if (latitude != null && longitude != null) {
+                kakaoMap?.moveCamera(
+                    CameraUpdateFactory.newCenterPosition(
+                        LatLng.from(latitude, longitude),
+                    ),
+                )
+            }
+        }
+
+        previousSelectedStoreId = selectedStoreId
+    }
 
     LaunchedEffect(
         kakaoMap,
