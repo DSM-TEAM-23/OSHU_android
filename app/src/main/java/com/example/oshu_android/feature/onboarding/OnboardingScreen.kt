@@ -2,8 +2,10 @@ package com.example.oshu_android.feature.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,7 +71,7 @@ fun OnboardingScreen(
     LaunchedEffect(currentPageIndex, isCompleting) {
         pageProgress.snapTo(0f)
 
-        if (!isLastPage && !isCompleting) {
+        if (!isCompleting) {
             pageProgress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
@@ -78,7 +80,7 @@ fun OnboardingScreen(
                 ),
             )
 
-            if (pagerState.settledPage == currentPageIndex) {
+            if (!isLastPage && pagerState.settledPage == currentPageIndex) {
                 pagerState.animateScrollToPage(currentPageIndex + 1)
             }
         }
@@ -110,15 +112,28 @@ fun OnboardingScreen(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LinearProgressIndicator(
-            progress = { pageProgress.value },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(50)),
-            color = colorScheme.primary,
-            trackColor = colorScheme.outline.copy(alpha = 0.25f),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            pages.indices.forEach { index ->
+                val segmentProgress = when {
+                    index < currentPageIndex -> 1f
+                    index == currentPageIndex -> pageProgress.value
+                    else -> 0f
+                }
+
+                LinearProgressIndicator(
+                    progress = { segmentProgress },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50)),
+                    color = colorScheme.primary,
+                    trackColor = colorScheme.outline.copy(alpha = 0.25f),
+                )
+            }
+        }
 
         Box(
             modifier = Modifier
