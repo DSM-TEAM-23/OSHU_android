@@ -88,18 +88,17 @@ class MapViewModel(
     fun onTimeSaleClick() {
         _uiState.update {
             it.copy(
-                isTimeSaleSelected =
-                    !it.isTimeSaleSelected,
+                isTimeSaleSelected = true,
                 selectedStoreId = null,
             )
         }
     }
 
-    fun onHotDealClick() {
+    fun onAllClick() {
         _uiState.update {
             it.copy(
-                isHotDealSelected =
-                    !it.isHotDealSelected,
+                isTimeSaleSelected = false,
+                selectedStoreId = null,
             )
         }
     }
