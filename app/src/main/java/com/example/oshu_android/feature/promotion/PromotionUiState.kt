@@ -18,7 +18,7 @@ data class PromotionUiState(
 enum class PromotionCategory(
     val label: String,
 ) {
-    ALL("전체 딜"),
+    ALL("전체"),
     RESTAURANT("음식점"),
     CAFE("카페"),
     GROCERY("식료품"),
