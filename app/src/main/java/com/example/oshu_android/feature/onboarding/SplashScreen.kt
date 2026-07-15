@@ -13,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -52,16 +51,12 @@ fun SplashScreen(
     ) {
         Image(
             painter = painterResource(
-                R.drawable.img_logo_oshu,
+                R.drawable.img_splash_logo,
             ),
             contentDescription = "OSHU",
             modifier = Modifier
-                .width(380.dp)
-                .height(180.dp)
-                .graphicsLayer(
-                    scaleX = 2.2f,
-                    scaleY = 2.2f,
-                ),
+                .width(390.dp)
+                .height(184.dp),
             contentScale = ContentScale.Fit,
         )
     }
