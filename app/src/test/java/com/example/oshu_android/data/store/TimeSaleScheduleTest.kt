@@ -25,4 +25,15 @@ class TimeSaleScheduleTest {
             ),
         )
     }
+
+    @Test
+    fun formatsRemainingTimeFromKoreanLocalEndAt() {
+        assertEquals(
+            "01:00:00",
+            TimeSaleSchedule.remainingText(
+                endAt = "2026-07-17T03:00:00",
+                nowMillis = 1_784_221_200_000L,
+            ),
+        )
+    }
 }

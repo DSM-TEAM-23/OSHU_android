@@ -2,6 +2,7 @@ package com.example.oshu_android.data.store
 
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 object TimeSaleSchedule {
     fun remainingText(
@@ -34,6 +35,9 @@ object TimeSaleSchedule {
             runCatching {
                 SimpleDateFormat(pattern, Locale.US).apply {
                     isLenient = false
+                    if (!pattern.endsWith("X")) {
+                        timeZone = TimeZone.getTimeZone("Asia/Seoul")
+                    }
                 }.parse(timestamp)?.time
             }.getOrNull()
         }
@@ -42,5 +46,7 @@ object TimeSaleSchedule {
     private val TIME_FORMATS = listOf(
         "yyyy-MM-dd'T'HH:mm:ss.SSSX",
         "yyyy-MM-dd'T'HH:mm:ssX",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "yyyy-MM-dd'T'HH:mm:ss",
     )
 }
