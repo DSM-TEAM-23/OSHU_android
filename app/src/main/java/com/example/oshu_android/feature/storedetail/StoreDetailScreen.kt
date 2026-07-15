@@ -67,6 +67,7 @@ import com.example.oshu_android.data.store.StoreDetailResponse
 import com.example.oshu_android.data.store.TimeSaleResponse
 import com.example.oshu_android.data.store.StoreCardResponse
 import com.example.oshu_android.feature.map.KakaoMapView
+import com.example.oshu_android.feature.map.MapViewModel
 import com.example.oshu_android.ui.theme.OshuBorder
 import com.example.oshu_android.ui.theme.OshuPink
 import com.example.oshu_android.ui.theme.OshuPinkLight
@@ -185,7 +186,7 @@ fun StoreDetailScreen(
                 onDirectionsClick = {
                     uiState.store?.let { store ->
                         val uri = Uri.parse(
-                            "geo:${store.latitude ?: 36.3622},${store.longitude ?: 127.3562}?q=${Uri.encode(store.name)}",
+                            "geo:${store.latitude ?: MapViewModel.INITIAL_LATITUDE},${store.longitude ?: MapViewModel.INITIAL_LONGITUDE}?q=${Uri.encode(store.name)}",
                         )
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     }
@@ -661,9 +662,10 @@ private fun LocationInfo(store: StoreDetailResponse) {
                 onStoreClick = {},
                 onMapClick = {},
                 onMapError = {},
-                initialLatitude = store.latitude ?: 36.3622,
-                initialLongitude = store.longitude ?: 127.3562,
+                initialLatitude = store.latitude ?: MapViewModel.INITIAL_LATITUDE,
+                initialLongitude = store.longitude ?: MapViewModel.INITIAL_LONGITUDE,
                 initialZoomLevel = 17,
+                fitCurrentLocation = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),

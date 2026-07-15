@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -34,13 +35,16 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.oshu_android.R
 import com.example.oshu_android.data.store.StoreCardResponse
+import com.example.oshu_android.data.store.TimeSaleSchedule
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
+import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
+import kotlinx.coroutines.delay
 
 @Composable
 fun KakaoMapView(
@@ -53,6 +57,7 @@ fun KakaoMapView(
     initialLatitude: Double = MapViewModel.INITIAL_LATITUDE,
     initialLongitude: Double = MapViewModel.INITIAL_LONGITUDE,
     initialZoomLevel: Int = 14,
+    fitCurrentLocation: Boolean = false,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -65,6 +70,31 @@ fun KakaoMapView(
             ContextCompat.getDrawable(
                 context,
                 R.drawable.ic_marker_pink,
+            ),
+        ).toBitmap()
+    }
+    var currentTimeMillis by remember {
+        mutableLongStateOf(System.currentTimeMillis())
+    }
+    val hasTimedDiscount = stores.any { store ->
+        store.timeSaleActive &&
+            store.discountRate?.let { it > 0 } == true &&
+            !store.timeSaleEndAt.isNullOrBlank()
+    }
+
+    LaunchedEffect(hasTimedDiscount) {
+        if (!hasTimedDiscount) return@LaunchedEffect
+
+        while (true) {
+            currentTimeMillis = System.currentTimeMillis()
+            delay(1_000L)
+        }
+    }
+    val currentLocationMarkerBitmap = remember(context) {
+        requireNotNull(
+            ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_current_location_marker,
             ),
         ).toBitmap()
     }
@@ -221,7 +251,13 @@ fun KakaoMapView(
         modifier = modifier,
     )
 
-    LaunchedEffect(kakaoMap, stores, selectedStoreId, currentLocation) {
+    LaunchedEffect(
+        kakaoMap,
+        stores,
+        selectedStoreId,
+        currentLocation,
+        currentTimeMillis,
+    ) {
         val map = kakaoMap ?: return@LaunchedEffect
         val layer = map.labelManager?.layer ?: return@LaunchedEffect
 
@@ -229,14 +265,37 @@ fun KakaoMapView(
         layer.setClickable(true)
 
         currentLocation?.let { location ->
+            val currentPosition = LatLng.from(location.latitude, location.longitude)
             layer.addLabel(
                 LabelOptions.from(
                     "current_location",
-                    LatLng.from(location.latitude, location.longitude),
+                    currentPosition,
                 )
-                    .setStyles(R.drawable.ic_my_location)
+                    .setStyles(currentLocationMarkerBitmap)
                     .setRank(CURRENT_LOCATION_MARKER_RANK),
             )
+
+            if (fitCurrentLocation) {
+                stores.firstOrNull()?.let { store ->
+                    val latitude = store.latitude ?: return@let
+                    val longitude = store.longitude ?: return@let
+                    val storePosition = LatLng.from(latitude, longitude)
+
+                    if (!map.canShowMapPoints(
+                            map.zoomLevel,
+                            currentPosition,
+                            storePosition,
+                        )
+                    ) {
+                        map.moveCamera(
+                            CameraUpdateFactory.fitMapPoints(
+                                arrayOf(currentPosition, storePosition),
+                                24,
+                            ),
+                        )
+                    }
+                }
+            }
         }
 
         stores.forEach { store ->
@@ -252,6 +311,14 @@ fun KakaoMapView(
                 store.timeSaleActive -> TIME_SALE_MARKER_RANK
                 else -> NORMAL_MARKER_RANK
             }
+            val remainingTime = if (store.timeSaleActive) {
+                TimeSaleSchedule.remainingText(
+                    endAt = store.timeSaleEndAt,
+                    nowMillis = currentTimeMillis,
+                )
+            } else {
+                null
+            }
 
             layer.addLabel(
                 LabelOptions.from(
@@ -266,6 +333,7 @@ fun KakaoMapView(
                                     discountMarkerBitmap(
                                         marker = storeMarkerBitmap,
                                         discountRate = it,
+                                        remainingTime = remainingTime,
                                         density = context.resources.displayMetrics.density,
                                     )
                                 }
@@ -284,6 +352,7 @@ fun KakaoMapView(
 private fun discountMarkerBitmap(
     marker: Bitmap,
     discountRate: Int,
+    remainingTime: String?,
     density: Float,
 ): Bitmap {
     val horizontalPadding = 8f * density
@@ -295,7 +364,10 @@ private fun discountMarkerBitmap(
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
     }
-    val label = "${discountRate}% 할인"
+    val label = listOfNotNull(
+        "${discountRate}% 할인",
+        remainingTime,
+    ).joinToString(" · ")
     val textBounds = textPaint.fontMetrics
     val labelWidth = maxOf(
         marker.width.toFloat(),

@@ -121,6 +121,7 @@ fun MapScreen(
             onStoreClick = onStoreClick,
             onMapClick = onMapClick,
             onMapError = onMapError,
+            fitCurrentLocation = true,
             modifier = Modifier.fillMaxSize(),
         )
 

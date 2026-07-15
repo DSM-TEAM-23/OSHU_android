@@ -195,12 +195,12 @@ class MapViewModel(
 
     companion object {
         const val INITIAL_LATITUDE =
-            36.3622
+            36.390256322592
 
         const val INITIAL_LONGITUDE =
-            127.3449
+            127.36279835023
 
         const val INITIAL_RADIUS =
-            1500
+            100_000
     }
 }

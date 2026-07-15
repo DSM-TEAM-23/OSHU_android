@@ -9,6 +9,8 @@ data class StoreCardResponse(
     val longitude: Double? = null,
     val crowdLevel: String? = null,
     val timeSaleActive: Boolean = false,
+    val timeSaleStartAt: String? = null,
+    val timeSaleEndAt: String? = null,
     val externalData: Boolean = false,
     val imageUrl: String? = null,
     val openingHours: String? = null,
