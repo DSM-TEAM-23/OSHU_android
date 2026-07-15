@@ -366,7 +366,7 @@ private fun discountMarkerBitmap(
     }
     val label = listOfNotNull(
         "${discountRate}% 할인",
-        remainingTime,
+        remainingTime?.let { "남은 $it" },
     ).joinToString(" · ")
     val textBounds = textPaint.fontMetrics
     val labelWidth = maxOf(
