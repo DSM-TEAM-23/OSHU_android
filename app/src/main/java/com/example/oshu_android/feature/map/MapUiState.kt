@@ -7,7 +7,6 @@ data class MapUiState(
     val stores: List<StoreCardResponse> = emptyList(),
     val selectedStoreId: Long? = null,
     val isTimeSaleSelected: Boolean = false,
-    val isHotDealSelected: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 ) {
