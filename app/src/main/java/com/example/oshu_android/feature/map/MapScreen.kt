@@ -81,8 +81,8 @@ fun MapRoute(
     MapScreen(
         uiState = uiState,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onAllClick = viewModel::onAllClick,
         onTimeSaleClick = viewModel::onTimeSaleClick,
-        onHotDealClick = viewModel::onHotDealClick,
         onStoreClick = viewModel::onStoreClick,
         onMapClick = viewModel::onMapClick,
         onMapError = viewModel::onMapError,
@@ -98,8 +98,8 @@ fun MapRoute(
 fun MapScreen(
     uiState: MapUiState,
     onSearchQueryChanged: (String) -> Unit,
+    onAllClick: () -> Unit,
     onTimeSaleClick: () -> Unit,
-    onHotDealClick: () -> Unit,
     onStoreClick: (Long) -> Unit,
     onMapClick: () -> Unit,
     onMapError: (String) -> Unit,
@@ -128,9 +128,8 @@ fun MapScreen(
             query = uiState.searchQuery,
             onQueryChanged = onSearchQueryChanged,
             isTimeSaleSelected = uiState.isTimeSaleSelected,
-            isHotDealSelected = uiState.isHotDealSelected,
+            onAllClick = onAllClick,
             onTimeSaleClick = onTimeSaleClick,
-            onHotDealClick = onHotDealClick,
             modifier = Modifier.align(Alignment.TopCenter),
         )
 
@@ -184,9 +183,8 @@ private fun MapHeader(
     query: String,
     onQueryChanged: (String) -> Unit,
     isTimeSaleSelected: Boolean,
-    isHotDealSelected: Boolean,
+    onAllClick: () -> Unit,
     onTimeSaleClick: () -> Unit,
-    onHotDealClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(
@@ -253,16 +251,15 @@ private fun MapHeader(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 MapFilterChip(
-                    text = "타임 세일",
-                    selected = isTimeSaleSelected,
-                    onClick = onTimeSaleClick,
+                    text = "전체",
+                    selected = !isTimeSaleSelected,
+                    onClick = onAllClick,
                 )
 
                 MapFilterChip(
-                    text = "핫딜",
-                    icon = R.drawable.ic_hot_deal,
-                    selected = isHotDealSelected,
-                    onClick = onHotDealClick,
+                    text = "타임 세일",
+                    selected = isTimeSaleSelected,
+                    onClick = onTimeSaleClick,
                 )
             }
         }
