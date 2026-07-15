@@ -10,22 +10,22 @@ object TimeSaleSchedule {
         nowMillis: Long,
     ): String? {
         val endAtMillis = parseMillis(endAt) ?: return null
-        val remainingMillis = endAtMillis - nowMillis
+        return remainingText(endAtMillis - nowMillis)
+    }
 
+    fun remainingText(remainingMillis: Long): String? {
         if (remainingMillis <= 0L) return null
 
-        val totalSeconds = remainingMillis / 1_000L
-        val hours = totalSeconds / 3_600L
-        val minutes = totalSeconds % 3_600L / 60L
-        val seconds = totalSeconds % 60L
+        val totalMinutes = (remainingMillis / 60_000L).coerceAtLeast(1L)
+        val days = totalMinutes / 1_440L
+        val hours = totalMinutes % 1_440L / 60L
+        val minutes = totalMinutes % 60L
 
-        return String.format(
-            Locale.KOREA,
-            "%02d:%02d:%02d",
-            hours,
-            minutes,
-            seconds,
-        )
+        return listOfNotNull(
+            days.takeIf { it > 0L }?.let { "${it}일" },
+            hours.takeIf { it > 0L }?.let { "${it}시간" },
+            minutes.takeIf { it > 0L }?.let { "${it}분" },
+        ).joinToString(" ")
     }
 
     private fun parseMillis(value: String?): Long? {

@@ -32,8 +32,8 @@ class TimeSaleStatusTest {
 
     @Test
     fun formatsTheTimeRemainingForTheSectionHeader() {
-        assertEquals("14:22", timeRemainingText(862_000L))
-        assertEquals("1:14:22", timeRemainingText(4_462_000L))
+        assertEquals("14분", timeRemainingText(862_000L))
+        assertEquals("1시간 14분", timeRemainingText(4_462_000L))
     }
 
     private fun millisAt(value: String): Long {

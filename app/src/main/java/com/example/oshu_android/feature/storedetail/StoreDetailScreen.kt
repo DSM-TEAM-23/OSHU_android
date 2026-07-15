@@ -65,6 +65,7 @@ import com.example.oshu_android.R
 import com.example.oshu_android.data.store.CrowdStatusResponse
 import com.example.oshu_android.data.store.StoreDetailResponse
 import com.example.oshu_android.data.store.TimeSaleResponse
+import com.example.oshu_android.data.store.TimeSaleSchedule
 import com.example.oshu_android.data.store.StoreCardResponse
 import com.example.oshu_android.feature.map.KakaoMapView
 import com.example.oshu_android.feature.map.MapViewModel
@@ -542,18 +543,8 @@ internal fun activeTimeSales(
     }
 }
 
-internal fun timeRemainingText(remainingMillis: Long): String {
-    val totalSeconds = (remainingMillis.coerceAtLeast(0L) / 1_000L).toInt()
-    val hours = totalSeconds / 3_600
-    val minutes = (totalSeconds % 3_600) / 60
-    val seconds = totalSeconds % 60
-
-    return if (hours > 0) {
-        String.format(Locale.KOREA, "%d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format(Locale.KOREA, "%02d:%02d", minutes, seconds)
-    }
-}
+internal fun timeRemainingText(remainingMillis: Long): String? =
+    TimeSaleSchedule.remainingText(remainingMillis)
 
 private fun String?.toMillis(): Long? {
     val dateTime = this
