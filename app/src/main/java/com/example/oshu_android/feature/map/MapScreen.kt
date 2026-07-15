@@ -428,17 +428,24 @@ private fun SelectedStoreCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         color = Color.White,
-        shape = RoundedCornerShape(20.dp),
-        shadowElevation = 10.dp,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MapBorder.copy(alpha = 0.85f),
+        ),
+        shadowElevation = 8.dp,
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(
+                horizontal = 13.dp,
+                vertical = 12.dp,
+            ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             StoreThumbnail(store)
 
             Spacer(
-                modifier = Modifier.width(14.dp),
+                modifier = Modifier.width(13.dp),
             )
 
             Column(
@@ -446,8 +453,8 @@ private fun SelectedStoreCard(
             ) {
                 Text(
                     text = store.name,
-                    color = MapBrown,
-                    fontSize = 18.sp,
+                    color = Color(0xFF4F3438),
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -459,14 +466,15 @@ private fun SelectedStoreCard(
 
                 Text(
                     text = subtitle,
-                    color = MapHint,
-                    fontSize = 12.sp,
+                    color = Color(0xFF8A7478),
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(
-                    modifier = Modifier.height(9.dp),
+                    modifier = Modifier.height(8.dp),
                 )
 
                 Row(
@@ -501,8 +509,8 @@ private fun StoreThumbnail(store: StoreCardResponse) {
         contentDescription = store.name,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(72.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .size(70.dp)
+            .clip(RoundedCornerShape(11.dp)),
         onError = {
             if (imageModel != fallbackImage) {
                 imageModel = fallbackImage
@@ -545,18 +553,22 @@ private fun StoreTag(
     text: String,
 ) {
     Surface(
-        color = MapPrimaryLight,
-        shape = RoundedCornerShape(6.dp),
+        color = Color(0xFFFFE6EB),
+        shape = RoundedCornerShape(7.dp),
+        border = BorderStroke(
+            width = 0.5.dp,
+            color = MapPrimary.copy(alpha = 0.2f),
+        ),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 4.dp,
+                horizontal = 7.dp,
+                vertical = 3.dp,
             ),
-            color = MapPrimary,
+            color = Color(0xFFFF6F8B),
             fontSize = 10.sp,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
