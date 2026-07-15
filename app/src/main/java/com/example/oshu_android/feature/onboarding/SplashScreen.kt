@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -25,12 +27,19 @@ fun SplashScreen(
     onLoginRequired: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LaunchedEffect(Unit) {
-        onboardingPreferences.reset()
+    val isCompleted by onboardingPreferences.isCompleted.collectAsState(
+        initial = null,
+    )
 
+    LaunchedEffect(isCompleted) {
+        val completed = isCompleted ?: return@LaunchedEffect
         delay(1200)
 
-        onOnboardingRequired()
+        if (completed) {
+            onLoginRequired()
+        } else {
+            onOnboardingRequired()
+        }
     }
 
     Box(
