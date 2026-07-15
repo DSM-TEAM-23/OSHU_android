@@ -3,6 +3,12 @@ package com.example.oshu_android.feature.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.location.Location
 import android.location.LocationManager
 import android.location.LocationListener
@@ -253,7 +259,18 @@ fun KakaoMapView(
                     LatLng.from(latitude, longitude),
                 )
                     .setStyles(
-                        LabelStyle.from(storeMarkerBitmap)
+                        LabelStyle.from(
+                            store.discountRate
+                                ?.takeIf { it > 0 }
+                                ?.let {
+                                    discountMarkerBitmap(
+                                        marker = storeMarkerBitmap,
+                                        discountRate = it,
+                                        density = context.resources.displayMetrics.density,
+                                    )
+                                }
+                                ?: storeMarkerBitmap,
+                        )
                             .setAnchorPoint(0.5f, 1f),
                     )
                     .setClickable(true)
@@ -262,6 +279,57 @@ fun KakaoMapView(
             )
         }
     }
+}
+
+private fun discountMarkerBitmap(
+    marker: Bitmap,
+    discountRate: Int,
+    density: Float,
+): Bitmap {
+    val horizontalPadding = 8f * density
+    val verticalPadding = 3f * density
+    val gap = 4f * density
+    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        textSize = 12f * density
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        textAlign = Paint.Align.CENTER
+    }
+    val label = "${discountRate}% 할인"
+    val textBounds = textPaint.fontMetrics
+    val labelWidth = maxOf(
+        marker.width.toFloat(),
+        textPaint.measureText(label) + horizontalPadding * 2,
+    )
+    val labelHeight = textBounds.descent - textBounds.ascent + verticalPadding * 2
+    val bitmap = Bitmap.createBitmap(
+        labelWidth.toInt(),
+        (labelHeight + gap + marker.height).toInt(),
+        Bitmap.Config.ARGB_8888,
+    )
+    val canvas = Canvas(bitmap)
+    val markerLeft = (bitmap.width - marker.width) / 2f
+
+    canvas.drawRoundRect(
+        RectF(0f, 0f, bitmap.width.toFloat(), labelHeight),
+        labelHeight / 2,
+        labelHeight / 2,
+        Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(255, 94, 147) },
+    )
+    canvas.drawText(
+        label,
+        bitmap.width / 2f,
+        verticalPadding - textBounds.ascent,
+        textPaint,
+    )
+    canvas.drawBitmap(
+        marker,
+        markerLeft,
+        labelHeight + gap,
+        null,
+    )
+
+    return bitmap
 }
 
 private fun getLastKnownLocation(context: Context): Location? {
